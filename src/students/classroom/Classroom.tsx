@@ -20,7 +20,7 @@ export const Class: React.FC<ClassProps> = ({ image, name }) => {
       <h1 className="my-auto ml-4 w-auto text-center text-xl font-bold">
         {name}
       </h1>
-      <Link to="/classroom/info">
+      <Link to="/classroom/infor">
         <div className="mb-2 flex w-full">
           <button className="ml-auto mr-auto h-[40px] w-[230px] rounded-2xl border-2 border-black bg-gray-300">
             Open Classroom

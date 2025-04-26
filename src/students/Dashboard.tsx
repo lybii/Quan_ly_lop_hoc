@@ -1,12 +1,15 @@
 import React from 'react';
-import { Day } from '../components/dashboard/Day';
+
 import { Profile } from '../components/Profile';
 import { ProfileRank } from '../components/dashboard/Profile_rank';
 import { SubjectInDay } from '../components/dashboard/Subject_in_day';
 import { Title } from '../components/Title';
 import { SearchBox } from '../components/Search_box';
+import { DateList } from '../components/dashboard/Day';
 
 const Dashboard: React.FC = () => {
+  const today = new Date();
+  const month = today.getMonth() + 1; // Months are zero-based in JavaScript
   return (
     <div className="flex h-screen w-full flex-col md:flex-row">
       {/* Main Content */}
@@ -132,7 +135,7 @@ const Dashboard: React.FC = () => {
 
         <div className="rounded p-4">
           <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-xl font-bold">Tháng 3</h2>
+            <h2 className="text-xl font-bold">Tháng {month}</h2>
             <div className="flex gap-2">
               <button>
                 <svg
@@ -170,11 +173,7 @@ const Dashboard: React.FC = () => {
           </div>
 
           <div className="mb-7 flex flex-wrap justify-between">
-            <Day date="1" day="Mon" />
-            <Day date="2" day="Tue" />
-            <Day date="3" day="Wed" />
-            <Day date="4" day="Thu" />
-            <Day date="5" day="Fri" />
+            <DateList />
           </div>
           <div className="flex items-center justify-center">
             <h1 className="mb-2 text-xl font-bold">Thời khóa biểu</h1>

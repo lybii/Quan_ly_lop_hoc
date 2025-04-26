@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { SidebarItem } from './Sidebar_item';
 import { useState } from 'react';
 
-function Sidebar() {
+function AdminSidebar() {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -40,7 +40,7 @@ function Sidebar() {
         <div className="flex flex-col items-center justify-center space-y-2 md:flex-row md:space-x-4 md:space-y-0">
           <img
             className="h-12 w-12 md:h-16 md:w-16"
-            src="../../../src/assets/graduation-hat.png"
+            src="../../src/assets/graduation-hat.png"
             alt="Logo"
           />
           <p className="text-xl font-bold md:text-2xl">Edu Learn</p>
@@ -48,7 +48,7 @@ function Sidebar() {
 
         {/* Menu Navigation */}
         <div className="mt-4 w-full space-y-2">
-          <Link to="/" onClick={() => setIsOpen(false)}>
+          <Link to="/admin_dashboard" onClick={() => setIsOpen(false)}>
             <SidebarItem
               title="Trang chủ"
               icon={
@@ -68,7 +68,7 @@ function Sidebar() {
                 </svg>
               }
               color="text-blue-700"
-              isActive={location.pathname === '/'}
+              isActive={location.pathname === '/admin_dashboard'}
             />
           </Link>
 
@@ -140,7 +140,7 @@ function Sidebar() {
                 </svg>
               }
               color="text-blue-700"
-              isActive={location.pathname.startsWith('/classroom')}
+              isActive={location.pathname === '/classroom'}
             />
           </Link>
 
@@ -274,4 +274,4 @@ function Sidebar() {
   );
 }
 
-export default Sidebar;
+export default AdminSidebar;
