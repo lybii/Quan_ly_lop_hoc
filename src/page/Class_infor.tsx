@@ -1,8 +1,9 @@
 import React from 'react';
-import { Profile } from '../../components/Profile';
-import { SearchBox } from '../../components/Search_box';
-import { Title } from '../../components/Title';
+
 import { Link } from 'react-router-dom';
+import { Title } from '../components/Title';
+import { SearchBox } from '../components/Search_box';
+import { Profile } from '../components/Profile';
 
 interface ClassSettingProps {
   image: string;

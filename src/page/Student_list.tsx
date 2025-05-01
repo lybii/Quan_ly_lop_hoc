@@ -1,6 +1,6 @@
-import { Profile } from '../../components/Profile';
-import { SearchBox } from '../../components/Search_box';
-import { Title } from '../../components/Title';
+import { Profile } from '../components/Profile';
+import { SearchBox } from '../components/Search_box';
+import { Title } from '../components/Title';
 
 interface StudentInforProps {
   name: string;

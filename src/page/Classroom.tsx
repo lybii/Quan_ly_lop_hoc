@@ -1,7 +1,7 @@
 import React from 'react';
-import { Title } from '../../components/Title';
-import { SearchBox } from '../../components/Search_box';
-import { Profile } from '../../components/Profile';
+import { Title } from '../components/Title';
+import { SearchBox } from '../components/Search_box';
+import { Profile } from '../components/Profile';
 import { Link } from 'react-router-dom';
 
 interface ClassProps {

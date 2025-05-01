@@ -2,7 +2,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { SidebarItem } from './Sidebar_item';
 import { useState } from 'react';
 
-function AdminSidebar() {
+function TeacherSidebar() {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -48,7 +48,7 @@ function AdminSidebar() {
 
         {/* Menu Navigation */}
         <div className="mt-4 w-full space-y-2">
-          <Link to="/admin_dashboard" onClick={() => setIsOpen(false)}>
+          <Link to="/" onClick={() => setIsOpen(false)}>
             <SidebarItem
               title="Trang chủ"
               icon={
@@ -68,7 +68,7 @@ function AdminSidebar() {
                 </svg>
               }
               color="text-blue-700"
-              isActive={location.pathname === '/admin_dashboard'}
+              isActive={location.pathname === '/'}
             />
           </Link>
 
@@ -167,30 +167,6 @@ function AdminSidebar() {
               isActive={location.pathname === '/coures'}
             />
           </Link>
-          {/* 
-          <Link to="/assignment" onClick={() => setIsOpen(false)}>
-            <SidebarItem
-              title="Nhiệm vụ"
-              icon={
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="h-6 w-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"
-                  />
-                </svg>
-              }
-              color="text-blue-700"
-              isActive={location.pathname === '/assignment'}
-            />
-          </Link> */}
 
           <Link to="/help" onClick={() => setIsOpen(false)}>
             <SidebarItem
@@ -274,4 +250,4 @@ function AdminSidebar() {
   );
 }
 
-export default AdminSidebar;
+export default TeacherSidebar;
