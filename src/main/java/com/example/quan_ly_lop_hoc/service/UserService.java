@@ -3,7 +3,7 @@ package com.example.quan_ly_lop_hoc.service;
 import com.example.quan_ly_lop_hoc.dto.RoleDTO;
 import com.example.quan_ly_lop_hoc.dto.UserDTO;
 import com.example.quan_ly_lop_hoc.entity.User;
-import com.example.quan_ly_lop_hoc.repository.UserInterface;
+import com.example.quan_ly_lop_hoc.repository.UserRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,12 +14,12 @@ import java.util.stream.Collectors;
 @Service
 public class UserService {
 
-    private final UserInterface userRepository;
+    private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final BlacklistService blacklistService;
 
     @Autowired
-    public UserService(UserInterface userRepository, ModelMapper modelMapper, BlacklistService blacklistService) {
+    public UserService(UserRepository userRepository, ModelMapper modelMapper, BlacklistService blacklistService) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.blacklistService = blacklistService;
@@ -47,7 +47,8 @@ public class UserService {
     }
 
     public UserDTO getUser(int userId) {
-        User user = userRepository.findById(userId);
+        User user = userRepository.findById(userId)
+        .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
         if (user == null) {
             throw new RuntimeException("User not found with ID: " + userId);
         }

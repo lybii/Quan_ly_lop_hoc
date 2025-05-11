@@ -25,6 +25,12 @@ public class JwtService {
 
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
+        // Giả định UserDetails chứa role trong authorities
+        String role = userDetails.getAuthorities().stream()
+                .map(auth -> auth.getAuthority().replace("ROLE_", ""))
+                .findFirst()
+                .orElse("USER");
+        claims.put("role", role);
         return createToken(claims, userDetails.getUsername());
     }
 
@@ -54,7 +60,6 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
-    // Thay đổi từ private thành public
     public Claims extractAllClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())

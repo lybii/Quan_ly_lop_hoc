@@ -1,32 +1,30 @@
-package com.example.quan_ly_lop_hoc.entity;
+package com.example.quan_ly_lop_hoc.dto;
 
-import jakarta.persistence.*;
 import java.util.List;
 
-@Entity(name = "course")
-public class Course {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+public class CourseDTO {
     private int id;
-
-    @Column(name = "course_name")
     private String courseName;
-
-    @Column(name = "description")
     private String description;
-
-    @Column(name = "course_code")
     private String courseCode;
-
-    @Column(name = "credits")
     private int credits;
-
-    @Column(name = "status")
     private int status;
+    private List<ClassDTO> classes; // Danh sách lớp học (dùng khi cần)
 
-    // Thêm quan hệ OneToMany với Class
-    @OneToMany(mappedBy = "course")
-    private List<Class> classes;
+    // Constructor mặc định
+    public CourseDTO() {
+    }
+
+    // Constructor đầy đủ
+    public CourseDTO(int id, String courseName, String description, String courseCode, int credits, int status, List<ClassDTO> classes) {
+        this.id = id;
+        this.courseName = courseName;
+        this.description = description;
+        this.courseCode = courseCode;
+        this.credits = credits;
+        this.status = status;
+        this.classes = classes;
+    }
 
     // Getters và Setters
     public int getId() {
@@ -77,11 +75,11 @@ public class Course {
         this.status = status;
     }
 
-    public List<Class> getClasses() {
+    public List<ClassDTO> getClasses() {
         return classes;
     }
 
-    public void setClasses(List<Class> classes) {
+    public void setClasses(List<ClassDTO> classes) {
         this.classes = classes;
     }
 }

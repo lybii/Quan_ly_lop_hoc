@@ -5,14 +5,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import com.example.quan_ly_lop_hoc.repository.UserInterface;
+import com.example.quan_ly_lop_hoc.repository.UserRepository;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
-    private final UserInterface userRepository;
+    private final UserRepository userRepository;
 
-    public CustomUserDetailsService(UserInterface userRepository) {
+    public CustomUserDetailsService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 

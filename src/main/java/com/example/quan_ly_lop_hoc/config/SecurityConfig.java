@@ -3,7 +3,7 @@ package com.example.quan_ly_lop_hoc.config;
 import com.example.quan_ly_lop_hoc.service.JwtService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableScheduling; // Thêm dòng này
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -19,15 +19,19 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-@EnableScheduling // Thêm để kích hoạt scheduled tasks
+@EnableScheduling
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final UserDetailsService userDetailsService;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, UserDetailsService userDetailsService) {
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, 
+                          UserDetailsService userDetailsService,
+                          JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.userDetailsService = userDetailsService;
+        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
     }
 
     @Bean
@@ -46,13 +50,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf().disable()
+            .exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint)
+            .and()
             .authorizeHttpRequests()
-            .requestMatchers("/auth/login").permitAll()
-            .requestMatchers("/api/users/students").hasRole("ADMIN")
-            .requestMatchers("/api/users/lecturers").hasAnyRole("ADMIN", "LECTURER")
-            .requestMatchers("/api/users/admins").hasRole("ADMIN")
-            .requestMatchers("/api/users/**").authenticated()
-            .anyRequest().authenticated()
+                .requestMatchers("/auth/login").permitAll()
+                .requestMatchers("/api/users/students").hasRole("ADMIN")
+                .requestMatchers("/api/users/lecturers").hasAnyRole("ADMIN", "LECTURER")
+                .requestMatchers("/api/users/admins").hasRole("ADMIN")
+                .requestMatchers("/api/users/**").authenticated()
+                .anyRequest().authenticated()
             .and()
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

@@ -6,12 +6,8 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import com.example.quan_ly_lop_hoc.entity.User;
 
-public interface UserInterface extends JpaRepository<User, Integer> {
+public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findByEmail(String email);
     // Lấy tất cả sinh viên (roleId = 1)
     List<User> findByRoleId(int roleId);
-
-    // Lấy thông tin user theo userId
-    User findById(int userId);
-
 }
