@@ -62,7 +62,7 @@ public class CourseService {
         Supplier<NotFoundException> exceptionSupplier = () -> new NotFoundException("Khóa học không tồn tại");
         courseRepository.findById(courseId)
                 .orElseThrow(exceptionSupplier);
-        return classRepository.findByCourseId(courseId).stream()
+        return classRepository.findByCourseIdWithClassUsers(courseId).stream()
                 .map(this::mapClassToDTO)
                 .collect(Collectors.toList());
     }
@@ -72,7 +72,7 @@ public class CourseService {
         Supplier<NotFoundException> exceptionSupplier = () -> new NotFoundException("Khóa học không tồn tại");
         courseRepository.findById(courseId)
                 .orElseThrow(exceptionSupplier);
-        return classRepository.findClassesByCourse_IdAndTeacher_Id(courseId, userId).stream()
+        return classRepository.findClassesByCourse_IdAndTeacher_IdWithClassUsers(courseId, userId).stream()
                 .map(this::mapClassToDTO)
                 .collect(Collectors.toList());
     }
