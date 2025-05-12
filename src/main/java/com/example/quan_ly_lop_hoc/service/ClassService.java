@@ -189,7 +189,7 @@ public class ClassService {
 
         if (classDTO.getClassUserId() != 0) {
             classUserRepository.findByClassId(classId).stream()
-                    .filter(cu -> "Giảng viên".equals(cu.getUser().getRole().getName()))
+                    .filter(cu -> "LECTURER".equals(cu.getUser().getRole().getName()))
                     .forEach(classUserRepository::delete);
 
             User teacher = userRepository.findById(classDTO.getClassUserId())
@@ -247,7 +247,7 @@ public class ClassService {
     private ClassDTO mapToDTO(Class classEntity) {
         int classUserId = 0;
         Optional<ClassUser> teacherClassUser = classUserRepository.findByClassId(classEntity.getId()).stream()
-                .filter(cu -> "Giảng viên".equals(cu.getUser().getRole().getName()))
+                .filter(cu -> "LECTURER".equals(cu.getUser().getRole().getName()))
                 .findFirst();
         if (teacherClassUser.isPresent()) {
             classUserId = teacherClassUser.get().getUser().getId();

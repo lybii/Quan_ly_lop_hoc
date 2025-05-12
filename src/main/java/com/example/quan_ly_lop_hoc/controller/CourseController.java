@@ -40,7 +40,7 @@ public class CourseController {
 
     // Lấy danh sách khóa học của giảng viên (teacher)
     @GetMapping("/teacher/{userId}")
-    @PreAuthorize("hasRole('ROLE_TEACHER')")
+    @PreAuthorize("hasRole('ROLE_LECTURER')")
     public ResponseEntity<ResponseData> getAllCoursesOfTeacher(@PathVariable int userId) {
         List<CourseDTO> courses = courseService.getAllCoursesOfTeacher(userId);
         ResponseData responseData = new ResponseData(200, true, "Lấy danh sách khóa học của giảng viên thành công", courses);
@@ -49,7 +49,7 @@ public class CourseController {
 
     // Lấy chi tiết khóa học (admin, teacher)
     @GetMapping("/{courseId}")
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TEACHER')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_LECTURER')")
     public ResponseEntity<ResponseData> getCourse(@PathVariable int courseId) {
         CourseDTO course = courseService.getCourse(courseId);
         ResponseData responseData = new ResponseData(200, true, "Lấy chi tiết khóa học thành công", course);
@@ -67,7 +67,7 @@ public class CourseController {
 
     // Lấy lớp học mà giảng viên giảng dạy trong một khóa học (teacher)
     @GetMapping("/{courseId}/classes/teacher/{userId}")
-    @PreAuthorize("hasRole('ROLE_TEACHER')")
+    //@PreAuthorize("hasRole('ROLE_LECTURER')")
     public ResponseEntity<ResponseData> getAllClassesOfTeacher(@PathVariable int courseId, @PathVariable int userId) {
         List<ClassDTO> classes = courseService.getAllClassesOfTeacher(courseId, userId);
         ResponseData responseData = new ResponseData(200, true, "Lấy danh sách lớp học của giảng viên thành công", classes);

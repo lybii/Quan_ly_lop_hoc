@@ -125,7 +125,7 @@ public class CourseService {
         int classUserId = 0;
         if (!classEntity.getClassUsers().isEmpty()) {
             classUserId = classEntity.getClassUsers().stream()
-                    .filter(cu -> "Giảng viên".equals(cu.getUser().getRole().getName()))
+                    .filter(cu -> "LECTURER".equals(cu.getUser().getRole().getName()))
                     .map(cu -> cu.getUser().getId())
                     .findFirst()
                     .orElse(0);

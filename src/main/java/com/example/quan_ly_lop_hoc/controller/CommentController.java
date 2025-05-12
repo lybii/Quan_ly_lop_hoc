@@ -19,7 +19,7 @@ public class CommentController {
     @Autowired
     private CommentService commentService;
 
-    @PreAuthorize("hasAnyRole('ROLE_STUDENT', 'ROLE_TEACHER')")
+    @PreAuthorize("hasAnyRole('ROLE_STUDENT', 'ROLE_LECTURER')")
     @PostMapping
     public ResponseEntity<ResponseData> addComment(@RequestBody CommentRequest request) {
         CommentDTO savedComment = commentService.addComment(request);
@@ -27,7 +27,7 @@ public class CommentController {
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_STUDENT', 'ROLE_TEACHER')")
+    @PreAuthorize("hasAnyRole('ROLE_STUDENT', 'ROLE_LECTURER')")
     @PutMapping("/{commentId}")
     public ResponseEntity<ResponseData> updateComment(@PathVariable int commentId, @RequestBody CommentRequest request) {
         CommentDTO updatedComment = commentService.updateComment(commentId, request);
@@ -35,7 +35,7 @@ public class CommentController {
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_STUDENT', 'ROLE_TEACHER')")
+    @PreAuthorize("hasAnyRole('ROLE_STUDENT', 'ROLE_LECTURER')")
     @DeleteMapping("/{commentId}")
     public ResponseEntity<ResponseData> deleteComment(@PathVariable int commentId) {
         commentService.deleteComment(commentId);
@@ -43,7 +43,7 @@ public class CommentController {
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_STUDENT', 'ROLE_TEACHER')")
+    @PreAuthorize("hasAnyRole('ROLE_STUDENT', 'ROLE_LECTURER')")
     @GetMapping("/assignment/{assignmentId}")
     public ResponseEntity<ResponseData> getCommentsOfAssignment(@PathVariable int assignmentId) {
         List<CommentDTO> comments = commentService.getCommentsOfAssignment(assignmentId);

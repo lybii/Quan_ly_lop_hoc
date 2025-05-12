@@ -61,6 +61,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/users/admins").hasRole("ADMIN")
                 .requestMatchers("/api/users/**").authenticated()
                 .requestMatchers("/api/courses/**").authenticated()
+                .requestMatchers("/api/classes/**").authenticated()
+                .requestMatchers("/api/comments/**").authenticated()
                 .anyRequest().authenticated()
             .and()
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
