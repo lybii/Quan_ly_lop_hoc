@@ -22,6 +22,7 @@ import com.example.quan_ly_lop_hoc.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -84,7 +85,7 @@ public class ClassService {
         if (classDTO.getClassUserId() != 0) {
             User teacher = userRepository.findById(classDTO.getClassUserId())
                     .orElseThrow(() -> new NotFoundException("Giảng viên không tồn tại"));
-            if (!"Giảng viên".equals(teacher.getRole().getName())) {
+            if (!"LECTURER".equals(teacher.getRole().getName())) {
                 throw new IllegalArgumentException("Người dùng không phải là giảng viên");
             }
             ClassUser classUser = new ClassUser();
@@ -97,7 +98,7 @@ public class ClassService {
             for (Integer studentId : classDTO.getStudentIds()) {
                 User student = userRepository.findById(studentId)
                         .orElseThrow(() -> new NotFoundException("Sinh viên không tồn tại: " + studentId));
-                if (!"Sinh viên".equals(student.getRole().getName())) {
+                if (!"STUDENT".equals(student.getRole().getName())) {
                     throw new IllegalArgumentException("Người dùng không phải là sinh viên: " + studentId);
                 }
                 ClassUser classUser = new ClassUser();
@@ -128,25 +129,35 @@ public class ClassService {
         Class classEntity = classRepository.findByIdWithClassUsers(classId)
                 .orElseThrow(() -> new NotFoundException("Lớp học không tồn tại"));
 
-        List<ClassUserDTO> classUsers = classEntity.getClassUsers().stream()
-                .map(cu -> new ClassUserDTO(
-                        cu.getId(),
-                        new UserDTO(
-                                cu.getUser().getId(),
-                                cu.getUser().getUserName(),
-                                cu.getUser().getEmail(),
-                                cu.getUser().getDateOfBirth(),
-                                cu.getUser().getGender(),
-                                cu.getUser().getPhoneNumber(),
-                                cu.getUser().getAvatar(),
-                                cu.getUser().getCode(),
-                                cu.getUser().getMajor(),
-                                cu.getUser().getStatus(),
-                                new RoleDTO(cu.getUser().getRole().getId(), cu.getUser().getRole().getName())
-                        ),
-                        cu.getClass1().getId()
-                ))
-                .collect(Collectors.toList());
+        // Tách danh sách người dùng thành giảng viên và sinh viên
+        List<ClassUserDTO> lecturers = new ArrayList<>();
+        List<ClassUserDTO> students = new ArrayList<>();
+
+        classEntity.getClassUsers().forEach(cu -> {
+            ClassUserDTO classUserDTO = new ClassUserDTO(
+                    cu.getId(),
+                    new UserDTO(
+                            cu.getUser().getId(),
+                            cu.getUser().getUserName(),
+                            cu.getUser().getEmail(),
+                            cu.getUser().getDateOfBirth(),
+                            cu.getUser().getGender(),
+                            cu.getUser().getPhoneNumber(),
+                            cu.getUser().getAvatar(),
+                            cu.getUser().getCode(),
+                            cu.getUser().getMajor(),
+                            cu.getUser().getStatus(),
+                            new RoleDTO(cu.getUser().getRole().getId(), cu.getUser().getRole().getName())
+                    ),
+                    cu.getClass1().getId()
+            );
+
+            if ("LECTURER".equals(cu.getUser().getRole().getName())) {
+                lecturers.add(classUserDTO);
+            } else if ("STUDENT".equals(cu.getUser().getRole().getName())) {
+                students.add(classUserDTO);
+            }
+        });
 
         return new ClassDetailDTO(
                 classEntity.getId(),
@@ -162,7 +173,8 @@ public class ClassService {
                         classEntity.getCourse().getCredits(),
                         classEntity.getCourse().getStatus(),
                         null),
-                classUsers
+                lecturers,
+                students
         );
     }
 
@@ -194,7 +206,7 @@ public class ClassService {
 
             User teacher = userRepository.findById(classDTO.getClassUserId())
                     .orElseThrow(() -> new NotFoundException("Giảng viên không tồn tại"));
-            if (!"Giảng viên".equals(teacher.getRole().getName())) {
+            if (!"LECTURER".equals(teacher.getRole().getName())) {
                 throw new IllegalArgumentException("Người dùng không phải là giảng viên");
             }
             ClassUser classUser = new ClassUser();

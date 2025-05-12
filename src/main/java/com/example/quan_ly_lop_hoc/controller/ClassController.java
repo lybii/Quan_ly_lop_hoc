@@ -50,7 +50,7 @@ public class ClassController {
 
     // Lấy thông tin chi tiết của lớp học (user)
     @GetMapping("/{classId}")
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_STUDENT', 'ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_LECTURER', 'ROLE_STUDENT', 'ROLE_ADMIN')")
     public ResponseEntity<ResponseData> getClass(@PathVariable int classId) {
         ClassDetailDTO classDetail = classService.getClass(classId);
         ResponseData responseData = new ResponseData(200, true, "Lấy chi tiết lớp học thành công", classDetail);

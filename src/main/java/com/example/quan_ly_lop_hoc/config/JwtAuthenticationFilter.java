@@ -36,7 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         String requestURI = request.getRequestURI();
         // Bỏ qua xác thực cho các endpoint permitAll
-        if (requestURI.equals("/api/users/logout") || requestURI.equals("/auth/login")) {
+        if (requestURI.equals("/auth/login")) {
             System.out.println("🔍 Skipping authentication for: " + requestURI);
             filterChain.doFilter(request, response);
             return;

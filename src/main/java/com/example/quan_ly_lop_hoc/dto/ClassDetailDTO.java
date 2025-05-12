@@ -9,19 +9,22 @@ public class ClassDetailDTO {
     private int count;
     private int status;
     private CourseDTO course;
-    private List<ClassUserDTO> classUsers;
+    private List<ClassUserDTO> lecturers; // Danh sách giảng viên
+    private List<ClassUserDTO> students; // Danh sách sinh viên
 
     public ClassDetailDTO() {
     }
 
-    public ClassDetailDTO(int id, String classCode, String type, int count, int status, CourseDTO course, List<ClassUserDTO> classUsers) {
+    public ClassDetailDTO(int id, String classCode, String type, int count, int status, 
+                         CourseDTO course, List<ClassUserDTO> lecturers, List<ClassUserDTO> students) {
         this.id = id;
         this.classCode = classCode;
         this.type = type;
         this.count = count;
         this.status = status;
         this.course = course;
-        this.classUsers = classUsers;
+        this.lecturers = lecturers;
+        this.students = students;
     }
 
     public int getId() {
@@ -72,11 +75,19 @@ public class ClassDetailDTO {
         this.course = course;
     }
 
-    public List<ClassUserDTO> getClassUsers() {
-        return classUsers;
+    public List<ClassUserDTO> getLecturers() {
+        return lecturers;
     }
 
-    public void setClassUsers(List<ClassUserDTO> classUsers) {
-        this.classUsers = classUsers;
+    public void setLecturers(List<ClassUserDTO> lecturers) {
+        this.lecturers = lecturers;
+    }
+
+    public List<ClassUserDTO> getStudents() {
+        return students;
+    }
+
+    public void setStudents(List<ClassUserDTO> students) {
+        this.students = students;
     }
 }
