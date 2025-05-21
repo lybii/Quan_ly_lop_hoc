@@ -72,7 +72,7 @@ export const AssignmentList: React.FC = () => {
       </div>
       <div className="no-scrollbar h-screen w-full overflow-auto rounded-2xl bg-white p-4">
         <div className="flex w-full justify-end">
-          <Link to="/classroom/infor/assignment/create">
+          <Link to="create">
             <button className="flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-700">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -92,7 +92,7 @@ export const AssignmentList: React.FC = () => {
             </button>
           </Link>
         </div>
-        <Link to="/classroom/infor/assignment/1">
+        <Link to="1">
           <Assignment
             title="Bài tập 1"
             description="Làm bài tập 1"

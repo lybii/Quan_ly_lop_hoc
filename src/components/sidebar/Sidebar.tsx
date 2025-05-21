@@ -48,7 +48,7 @@ function Sidebar() {
 
         {/* Menu Navigation */}
         <div className="mt-4 w-full space-y-2">
-          <Link to="/" onClick={() => setIsOpen(false)}>
+          <Link to="/student" onClick={() => setIsOpen(false)}>
             <SidebarItem
               title="Trang chủ"
               icon={
@@ -68,11 +68,11 @@ function Sidebar() {
                 </svg>
               }
               color="text-blue-700"
-              isActive={location.pathname === '/'}
+              isActive={location.pathname === '/student'}
             />
           </Link>
 
-          <Link to="/calendar" onClick={() => setIsOpen(false)}>
+          <Link to="/student/calendar" onClick={() => setIsOpen(false)}>
             <SidebarItem
               title="Lịch"
               icon={
@@ -92,11 +92,11 @@ function Sidebar() {
                 </svg>
               }
               color="text-blue-700"
-              isActive={location.pathname === '/calendar'}
+              isActive={location.pathname === '/student/calendar'}
             />
           </Link>
 
-          <Link to="/library" onClick={() => setIsOpen(false)}>
+          <Link to="/student/library" onClick={() => setIsOpen(false)}>
             <SidebarItem
               title="Thư viện"
               icon={
@@ -116,11 +116,11 @@ function Sidebar() {
                 </svg>
               }
               color="text-blue-700"
-              isActive={location.pathname === '/library'}
+              isActive={location.pathname === '/student/library'}
             />
           </Link>
 
-          <Link to="/classroom" onClick={() => setIsOpen(false)}>
+          <Link to="/student/classroom" onClick={() => setIsOpen(false)}>
             <SidebarItem
               title="Lớp học"
               icon={
@@ -140,7 +140,7 @@ function Sidebar() {
                 </svg>
               }
               color="text-blue-700"
-              isActive={location.pathname.startsWith('/classroom')}
+              isActive={location.pathname.startsWith('/student/classroom')}
             />
           </Link>
 
@@ -164,7 +164,7 @@ function Sidebar() {
                 </svg>
               }
               color="text-blue-700"
-              isActive={location.pathname === '/coures'}
+              isActive={location.pathname === '/student/coures'}
             />
           </Link>
           {/* 
@@ -192,7 +192,7 @@ function Sidebar() {
             />
           </Link> */}
 
-          <Link to="/help" onClick={() => setIsOpen(false)}>
+          <Link to="/student/help" onClick={() => setIsOpen(false)}>
             <SidebarItem
               title="Thông tin"
               icon={
@@ -212,11 +212,11 @@ function Sidebar() {
                 </svg>
               }
               color="text-gray-700"
-              isActive={location.pathname === '/help'}
+              isActive={location.pathname === '/student/help'}
             />
           </Link>
 
-          <Link to="/settings" onClick={() => setIsOpen(false)}>
+          <Link to="/student/settings" onClick={() => setIsOpen(false)}>
             <SidebarItem
               title="Cài đặt"
               icon={
@@ -241,31 +241,29 @@ function Sidebar() {
                 </svg>
               }
               color="text-gray-700"
-              isActive={location.pathname === '/settings'}
+              isActive={location.pathname === '/student/settings'}
             />
           </Link>
 
-          <Link to="/logout" onClick={() => setIsOpen(false)}>
+          <Link to="/student/logout" onClick={() => setIsOpen(false)}>
             <SidebarItem
               title="Đăng xuất"
               icon={
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="h-6 w-6"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
                 >
                   <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M8.25 9V5.25A2.25 2.25 0 0 1 10.5 3h6a2.25 2.25 0 0 1 2.25 2.25v13.5A2.25 2.25 0 0 1 16.5 21h-6a2.25 2.25 0 0 1-2.25-2.25V15m-3 0-3-3m0 0 3-3m-3 3H15"
+                    fillRule="evenodd"
+                    d="M3 3a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H3zm11 4.414l-4.293 4.293a1 1 0 0 1-1.414-1.414L12.586 6H8a1 1 0 1 1 0-2h6a1 1 0 0 1 1 1v6a1 1 0 1 1-2 0V7.414z"
+                    clipRule="evenodd"
                   />
                 </svg>
               }
               color="text-gray-700"
-              isActive={location.pathname === '/logout'}
+              isActive={location.pathname === '/student/logout'}
             />
           </Link>
         </div>

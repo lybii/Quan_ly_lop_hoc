@@ -1,10 +1,15 @@
-export function SearchBox() {
+interface SearchBoxProps {
+  onSearch: (value: string) => void;
+}
+
+export function SearchBox({ onSearch }: SearchBoxProps) {
   return (
     <div className="mb-2 flex items-center justify-between">
       <input
         type="search"
         placeholder="Tìm kiếm"
         className="mb-2 mr-4 w-[500px] rounded-2xl border p-2"
+        onChange={(e) => onSearch(e.target.value)}
       />
       <div className="ml-96 flex items-center gap-2">
         <svg

@@ -10,6 +10,19 @@ interface ProfileProps {
 export const Profile: React.FC<ProfileProps> = ({ name, image, role }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
+  // Determine profile and password change paths based on role
+  const getProfilePath = () => {
+    if (role.toLowerCase() === 'student') return '/student/profile';
+    if (role.toLowerCase() === 'lecturer') return '/lecturer/profile';
+    return '/profile'; // Default path
+  };
+
+  const getPasswordPath = () => {
+    if (role.toLowerCase() === 'student') return '/student/change-password';
+    if (role.toLowerCase() === 'lecturer') return '/lecturer/change-password';
+    return '/change-password'; // Default path
+  };
+
   return (
     <div className="relative mb-10 ml-auto mr-auto mt-4 flex h-[60px] w-[250px] items-center gap-2 rounded-xl bg-white shadow-md">
       <img src={image} alt="Profile" className="ml-2 h-10 w-10 rounded-full" />
@@ -46,7 +59,7 @@ export const Profile: React.FC<ProfileProps> = ({ name, image, role }) => {
           }}
         >
           <ul className="flex flex-col">
-            <Link to="/profile">
+            <Link to={getProfilePath()}>
               <li className="mb-1 mt-1 flex h-[40px] w-full cursor-pointer items-center rounded-2xl hover:text-blue-600 hover:duration-300">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -63,6 +76,25 @@ export const Profile: React.FC<ProfileProps> = ({ name, image, role }) => {
                   />
                 </svg>
                 Bản thân
+              </li>
+            </Link>
+            <Link to={getPasswordPath()}>
+              <li className="mb-3 mt-3 flex h-[40px] w-full cursor-pointer items-center rounded-2xl hover:text-blue-600 hover:duration-300">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="m-3 size-6"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                  />
+                </svg>
+                Đổi mật khẩu
               </li>
             </Link>
             <li className="mb-3 mt-3 flex h-[40px] w-full cursor-pointer items-center rounded-2xl hover:text-blue-600 hover:duration-300">

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { Profile } from '../components/Profile';
 import { ProfileRank } from '../components/dashboard/Profile_rank';
@@ -6,25 +6,72 @@ import { SubjectInDay } from '../components/dashboard/Subject_in_day';
 import { Title } from '../components/Title';
 import { SearchBox } from '../components/Search_box';
 import { DateList } from '../components/dashboard/Day';
+import { userService } from '../services/userService';
 
 const Dashboard: React.FC = () => {
   const today = new Date();
   const month = today.getMonth() + 1; // Months are zero-based in JavaScript
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const response = await userService.getCurrentUser();
+        if (response.success) {
+          setUser(response.data);
+        } else {
+          setError(response.message || 'Failed to load user data');
+        }
+      } catch (error: any) {
+        console.error('Error fetching user data:', error);
+        setError(error.message || 'Error loading user data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-red-600">
+          <div className="text-lg font-bold">Error</div>
+          <div>{error}</div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="flex h-screen w-full flex-col md:flex-row">
       {/* Main Content */}
       <div className="no-scrollbar flex-1 overflow-auto scroll-smooth p-4">
         <Title title="Trang chủ" />
-        <SearchBox />
+        <SearchBox onSearch={() => {}} />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {/* Announcement */}
           <div className="col-span-2 h-[157px] rounded-xl bg-white p-4">
             <h2 className="mb-2 text-lg font-bold md:text-xl">Thông báo</h2>
             <div className="flex h-[74px] items-center rounded-lg bg-sky-200">
-              <p className="ml-4">
-                Xin chào! <strong>Trần Bá Lợi</strong> bạn có lịch dạy môn Lập
-                trình hướng đối tượng vào lúc <strong>10.00 giờ</strong>
-              </p>
+              {user && (
+                <p className="ml-4">
+                  Xin chào! <strong>{user.userName}</strong> bạn có lịch dạy môn
+                  Lập trình hướng đối tượng vào lúc <strong>10.00 giờ</strong>
+                </p>
+              )}
             </div>
           </div>
 
@@ -32,36 +79,7 @@ const Dashboard: React.FC = () => {
           <div className="no-scrollbar col-span-1 h-[300px] overflow-auto rounded-3xl bg-white p-4 md:h-[400px]">
             <h2 className="mb-2 text-xl font-bold">Bảng điểm</h2>
             <div className="flex flex-col gap-2">
-              <ProfileRank
-                name="Trần Bá Lợi"
-                image="profile1.jpg"
-                score={90}
-                backgroundColor="bg-pink-100"
-              />
-              <ProfileRank
-                name="Trần Bá Lợi"
-                image="profile1.jpg"
-                score={90}
-                backgroundColor="bg-blue-100"
-              />
-              <ProfileRank
-                name="Trần Bá Lợi"
-                image="profile1.jpg"
-                score={90}
-                backgroundColor="bg-pink-100"
-              />
-              <ProfileRank
-                name="Trần Bá Lợi"
-                image="profile1.jpg"
-                score={90}
-                backgroundColor="bg-red-100"
-              />
-              <ProfileRank
-                name="Trần Bá Lợi"
-                image="profile1.jpg"
-                score={90}
-                backgroundColor="bg-pink-100"
-              />
+             
             </div>
           </div>
 
@@ -126,12 +144,14 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Right Sidebar */}
-      <div className="hidden rounded-l-2xl bg-white p-4 md:block md:w-1/4">
-        <Profile
-          name="Trần Bá Lợi"
-          image="../../src/assets/avatar.png"
-          role="Teacher"
-        />
+      <div className="-mr-4 -mt-4 hidden rounded-l-2xl bg-white p-4 md:block md:w-1/4">
+        {user && (
+          <Profile
+            name={user.userName}
+            image={user.avatar || '../../src/assets/avatar.png'}
+            role={user.role?.name || 'User'}
+          />
+        )}
 
         <div className="rounded p-4">
           <div className="mb-2 flex items-center justify-between">
