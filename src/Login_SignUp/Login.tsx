@@ -150,13 +150,6 @@ function Login() {
                 {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
               </button>
             </div>
-
-            <div className='flex items-center justify-center text-sm'>
-              <span>Bạn chưa có tài khoản?</span>
-              <a href="/register" className="ml-1 font-medium text-indigo-600 hover:text-indigo-500">
-                Đăng ký
-              </a>
-            </div>
           </form>
         </div>
       </div>
