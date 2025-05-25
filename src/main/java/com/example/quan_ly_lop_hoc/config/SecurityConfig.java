@@ -1,5 +1,6 @@
 package com.example.quan_ly_lop_hoc.config;
 
+import com.example.quan_ly_lop_hoc.service.JwtService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -31,7 +32,7 @@ public class SecurityConfig {
     private final UserDetailsService userDetailsService;
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter, 
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter,
                           UserDetailsService userDetailsService,
                           JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint) {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
@@ -83,6 +84,12 @@ public class SecurityConfig {
                 .requestMatchers("/api/courses/**").authenticated()
                 .requestMatchers("/api/classes/**").authenticated()
                 .requestMatchers("/api/comments/**").authenticated()
+                .requestMatchers("/api/assignments/**").authenticated()
+                .requestMatchers("/api/lectures/**").authenticated()
+                .requestMatchers("/api/notifications/**").authenticated()
+                .requestMatchers("/api/submissions/**").authenticated()
+                .requestMatchers("/api/user-notifications/**").authenticated()
+                .requestMatchers("/api/attendances/**").authenticated()
                 .anyRequest().authenticated())
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
             
