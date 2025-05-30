@@ -1,5 +1,7 @@
 package com.example.quan_ly_lop_hoc.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.util.Date;
 
 public class UserNotificationResponse {
@@ -10,6 +12,7 @@ public class UserNotificationResponse {
 
     private int userId;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Ho_Chi_Minh")
     private Date time;
 
     public UserNotificationResponse() {}

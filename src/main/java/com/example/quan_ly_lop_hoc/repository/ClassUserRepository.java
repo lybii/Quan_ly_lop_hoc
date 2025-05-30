@@ -13,4 +13,6 @@ public interface ClassUserRepository extends JpaRepository<ClassUser, Integer> {
     List<ClassUser> findByClassId(@Param("classId") Integer classId);
 
     boolean existsByUserId(Integer userId);
+
+    List<ClassUser> findByClass1Id(Integer classId);
 }

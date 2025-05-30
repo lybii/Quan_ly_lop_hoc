@@ -19,18 +19,16 @@ public class UserNotificationController {
     @Autowired
     private UserNotificationService userNotificationService;
 
-    // Thêm mới cho nhiều user cùng lúc
-    @PostMapping("/add")
+    @PostMapping("/add-to-class")
     @PreAuthorize("hasRole('LECTURER') or hasRole('ADMIN')")
-    public ResponseEntity<?> addUserNotifications(@RequestBody UserNotificationRequest request) {
+    public ResponseEntity<?> addUserNotificationsToClass(@RequestBody UserNotificationRequest request) {
         try {
             userNotificationService.addUserNotifications(request);
-            return ResponseEntity.ok("Thêm user notifications thành công");
+            return ResponseEntity.ok("Thêm user notifications cho cả lớp thành công");
         } catch (RuntimeException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
         }
     }
-
 
     // Xóa 1 UserNotification theo notificationId và userId
 @DeleteMapping("/delete/{notificationId}/{userId}")
