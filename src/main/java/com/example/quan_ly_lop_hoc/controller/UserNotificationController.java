@@ -19,7 +19,7 @@ public class UserNotificationController {
     @Autowired
     private UserNotificationService userNotificationService;
 
-    @PostMapping("/add-to-class")
+    @PostMapping("/add")
     @PreAuthorize("hasRole('LECTURER') or hasRole('ADMIN')")
     public ResponseEntity<?> addUserNotificationsToClass(@RequestBody UserNotificationRequest request) {
         try {
