@@ -2,12 +2,14 @@ package com.example.quan_ly_lop_hoc.controller;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import com.example.quan_ly_lop_hoc.dto.NotificationResponse;
 import com.example.quan_ly_lop_hoc.dto.UserNotificationRequest;
 import com.example.quan_ly_lop_hoc.entity.User;
 import com.example.quan_ly_lop_hoc.service.UserNotificationService;
@@ -31,31 +33,67 @@ public class UserNotificationController {
         }
     }
 
-
     // Xóa 1 UserNotification theo notificationId và userId
-@DeleteMapping("/delete/{notificationId}/{userId}")
-@PreAuthorize("hasRole('LECTURER') or hasRole('ADMIN')")
-public ResponseEntity<?> deleteUserNotification(
-        @PathVariable int notificationId,
-        @PathVariable int userId
-) {
-    try {
-        userNotificationService.deleteUserNotification(notificationId, userId);
-        return ResponseEntity.ok("Xóa UserNotification thành công");
-    } catch (RuntimeException ex) {
-        return ResponseEntity.badRequest().body(ex.getMessage());
+    @DeleteMapping("/delete/{notificationId}/{userId}")
+    @PreAuthorize("hasRole('LECTURER') or hasRole('ADMIN')")
+    public ResponseEntity<?> deleteUserNotification(
+            @PathVariable int notificationId,
+            @PathVariable int userId
+    ) {
+        try {
+            userNotificationService.deleteUserNotification(notificationId, userId);
+            return ResponseEntity.ok("Xóa UserNotification thành công");
+        } catch (RuntimeException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
     }
-}
 
-// Xóa tất cả UserNotification của 1 notification theo notificationId qua URL
-@DeleteMapping("/delete-by-notification/{notificationId}")
-@PreAuthorize("hasRole('LECTURER') or hasRole('ADMIN')")
-public ResponseEntity<?> deleteUserNotificationsByNotificationId(@PathVariable int notificationId) {
-    try {
-        userNotificationService.deleteUserNotificationsByNotificationId(notificationId);
-        return ResponseEntity.ok("Xóa tất cả UserNotification của thông báo thành công");
-    } catch (RuntimeException ex) {
-        return ResponseEntity.badRequest().body(ex.getMessage());
+    // Xóa tất cả UserNotification của 1 notification theo notificationId qua URL
+    @DeleteMapping("/delete-by-notification/{notificationId}")
+    @PreAuthorize("hasRole('LECTURER') or hasRole('ADMIN')")
+    public ResponseEntity<?> deleteUserNotificationsByNotificationId(@PathVariable int notificationId) {
+        try {
+            userNotificationService.deleteUserNotificationsByNotificationId(notificationId);
+            return ResponseEntity.ok("Xóa tất cả UserNotification của thông báo thành công");
+        } catch (RuntimeException ex) {
+            return ResponseEntity.badRequest().body(ex.getMessage());
+        }
     }
-}
+    
+    // Lấy tất cả thông báo của một user
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<?> getUserNotifications(@PathVariable int userId) {
+        try {
+            List<NotificationResponse> notifications = userNotificationService.getUserNotifications(userId);
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "data", notifications
+            ));
+        } catch (RuntimeException ex) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", ex.getMessage()
+            ));
+        }
+    }
+    
+    // Đánh dấu thông báo đã đọc
+    @PutMapping("/mark-as-read/{notificationId}/{userId}")
+    public ResponseEntity<?> markNotificationAsRead(
+            @PathVariable int notificationId,
+            @PathVariable int userId
+    ) {
+        try {
+            userNotificationService.markNotificationAsRead(notificationId, userId);
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Đánh dấu thông báo đã đọc thành công"
+            ));
+        } catch (RuntimeException ex) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "success", false,
+                "message", ex.getMessage()
+            ));
+        }
+    }
 }

@@ -40,7 +40,7 @@ function TeacherSidebar() {
         <div className="flex flex-col items-center justify-center space-y-2 md:flex-row md:space-x-4 md:space-y-0">
           <img
             className="h-12 w-12 md:h-16 md:w-16"
-            src="../../src/assets/graduation-hat.png"
+            src="../../../src/assets/graduation-hat.png"
             alt="Logo"
           />
           <p className="text-xl font-bold md:text-2xl">Edu Learn</p>
@@ -93,30 +93,6 @@ function TeacherSidebar() {
               }
               color="text-blue-700"
               isActive={location.pathname === '/calendar'}
-            />
-          </Link>
-
-          <Link to="library" onClick={() => setIsOpen(false)}>
-            <SidebarItem
-              title="Thư viện"
-              icon={
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="h-6 w-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0 0 12 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75Z"
-                  />
-                </svg>
-              }
-              color="text-blue-700"
-              isActive={location.pathname === '/library'}
             />
           </Link>
 

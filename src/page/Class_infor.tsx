@@ -100,10 +100,10 @@ export const ClassInfor: React.FC = () => {
           />
         </Link>
 
-        <Link to={`rollcall`}>
+        <Link to={`lectures`}>
           <ClassSetting
             image="https://cdn-icons-png.flaticon.com/512/10270/10270677.png"
-            name="Điểm danh"
+            name="Buổi học"
           />
         </Link>
 

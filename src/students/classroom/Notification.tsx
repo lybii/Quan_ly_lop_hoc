@@ -88,16 +88,6 @@ export const NotificationList: React.FC = () => {
           date="12/10/2023"
           title="Điểm danh"
         />
-        <Notification
-          message="Học sinh lớp có mặt đầy đủ"
-          date="12/10/2023"
-          title="Điểm danh"
-        />
-        <Notification
-          message="Học sinh lớp  có mặt đầy đủ"
-          date="12/10/2023"
-          title="Điểm danh"
-        />
       </div>
     </div>
   );

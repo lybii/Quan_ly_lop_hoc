@@ -55,19 +55,22 @@ export const Classroom: React.FC = () => {
             );
             if (processResponse.data.success) {
               const classes = processResponse.data.data;
-              
+
               const classDetailsPromises = classes.map((classItem: any) =>
                 api.get(`/api/classes/${classItem.classId}`)
               );
-              const classDetailsResponses = await Promise.all(classDetailsPromises);
-              
-              const detailedClasses = classes.map((classItem: any, index: number) => ({
-                ...classItem,
-                ...classDetailsResponses[index].data.data
-              }));
-              
+              const classDetailsResponses =
+                await Promise.all(classDetailsPromises);
+
+              const detailedClasses = classes.map(
+                (classItem: any, index: number) => ({
+                  ...classItem,
+                  ...classDetailsResponses[index].data.data,
+                })
+              );
+
               setClasses(detailedClasses);
-              
+
               const uniqueCourses = detailedClasses.reduce(
                 (acc: any[], item: any) => {
                   if (
@@ -103,12 +106,15 @@ export const Classroom: React.FC = () => {
               const classDetailsPromises = allClasses.map((classItem: any) =>
                 api.get(`/api/classes/${classItem.id}`)
               );
-              const classDetailsResponses = await Promise.all(classDetailsPromises);
-              
+              const classDetailsResponses =
+                await Promise.all(classDetailsPromises);
+
               const detailedClasses = classDetailsResponses
-                .map((response) => response.data.success ? response.data.data : null)
+                .map((response) =>
+                  response.data.success ? response.data.data : null
+                )
                 .filter(Boolean);
-              
+
               setClasses(detailedClasses);
             }
           }
@@ -127,7 +133,9 @@ export const Classroom: React.FC = () => {
     if (selectedCourse === 'all') return classes;
     return classes.filter((classItem) => {
       // Check if course property exists and its ID matches the selected course
-      return classItem.course && classItem.course.id === parseInt(selectedCourse);
+      return (
+        classItem.course && classItem.course.id === parseInt(selectedCourse)
+      );
     });
   }, [classes, selectedCourse]);
 
@@ -183,7 +191,7 @@ export const Classroom: React.FC = () => {
                 <div className="m-auto my-4 flex h-[270px] w-[300px] flex-col rounded-2xl bg-white shadow-2xl">
                   <img
                     className="h-[170px] w-full rounded-2xl"
-                    src="../../src/assets/avatar.png"
+                    src="../../src/assets/class.png"
                     alt="classroom"
                   />
                   <h1 className="my-auto ml-4 w-auto text-center text-xl font-bold">

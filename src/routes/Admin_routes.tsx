@@ -7,6 +7,7 @@ import UserManager from '../admin/UserManager';
 import Library from '../admin/Library';
 import { Classroom } from '../admin/AdminClass';
 import Logout from '../components/Logout';
+import { NotificationManager } from '../admin/NotificationManager';
 
 const AdminRoutes = () => (
   <Routes>
@@ -17,6 +18,7 @@ const AdminRoutes = () => (
     <Route path="classroom/infor" element={<ClassInfor />}></Route>
     <Route path="classroom/infor/studentlist" element={<StudentList />}></Route>
     <Route path="profile" element={<EditProfile />} />
+    <Route path="notifications" element={<NotificationManager />} />
     <Route path="logout" element={<Logout />} />
   </Routes>
 );

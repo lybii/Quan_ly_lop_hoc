@@ -1,7 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { Profile } from '../../components/Profile';
 import { SearchBox } from '../../components/Search_box';
 import { Title } from '../../components/Title';
+import api from '../../api/axiosConfig';
+import * as XLSX from 'xlsx';
 
 // Interface cho dữ liệu điểm
 interface ScoreProps {
@@ -13,11 +16,43 @@ interface ScoreProps {
   score4: number | null; // Thi
 }
 
+// Interface cho bài tập
+interface Assignment {
+  id: number;
+  title: string;
+  description: string;
+  deadline: string;
+  file: string;
+  status: number;
+}
+
+// Interface cho bài nộp của sinh viên
+interface StudentSubmission {
+  id: number;
+  file: string;
+  submissionTime: string;
+  status: number;
+  grade: number | null;
+  userId: number;
+  assignmentId: number;
+  userName: string;
+}
+
 // Modal để thêm điểm mới
 interface ScoreModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (score: ScoreProps) => void;
+}
+
+// Function to format date for display
+function formatDate(dateString: string) {
+  try {
+    const date = new Date(dateString);
+    return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+  } catch (error) {
+    return dateString;
+  }
 }
 
 const ScoreModal: React.FC<ScoreModalProps> = ({ isOpen, onClose, onSave }) => {
@@ -149,255 +184,484 @@ const ScoreModal: React.FC<ScoreModalProps> = ({ isOpen, onClose, onSave }) => {
 
 // Trang quản lý điểm
 export const ScoreList: React.FC = () => {
-  const [scores, setScores] = useState<ScoreProps[]>([
-    {
-      id: '123456789',
-      name: 'Nguyễn Văn A',
-      score1: 8.5,
-      score2: 9.0,
-      score3: 7.5,
-      score4: 8.0,
-    },
-  ]);
+  const { classId } = useParams();
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [selectedAssignment, setSelectedAssignment] =
+    useState<Assignment | null>(null);
+  const [submissions, setSubmissions] = useState<StudentSubmission[]>([]);
+  const [filteredSubmissions, setFilteredSubmissions] = useState<
+    StudentSubmission[]
+  >([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editData, setEditData] = useState<ScoreProps | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [studentsMap, setStudentsMap] = useState<Record<number, any>>({});
 
-  const handleAddScore = (score: ScoreProps) => {
-    setScores([score, ...scores]);
-  };
+  // Fetch assignments and user data
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        // Fetch user data
+        const userId = localStorage.getItem('userId');
+        const token = localStorage.getItem('token');
 
-  const handleEdit = (score: ScoreProps) => {
-    setEditingId(score.id);
-    setEditData({ ...score });
-  };
-
-  const handleSaveEdit = (id: string) => {
-    if (editData) {
-      const scoresToValidate = [
-        editData.score1,
-        editData.score2,
-        editData.score3,
-        editData.score4,
-      ];
-      for (const score of scoresToValidate) {
-        if (score !== null && (isNaN(score) || score < 0 || score > 10)) {
-          alert('Điểm phải là số từ 0 đến 10 hoặc để trống!');
+        if (!userId || !token) {
+          setError('Vui lòng đăng nhập để xem điểm');
           return;
         }
+
+        const userResponse = await api.get(`/api/users/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (userResponse.data.success) {
+          setUser(userResponse.data.data);
+        }
+
+        // Fetch assignments for this class
+        const assignmentsResponse = await api.get(
+          `/api/assignments/assignments/class/${classId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+
+        if (!Array.isArray(assignmentsResponse.data)) {
+          setError('Định dạng dữ liệu bài tập không hợp lệ');
+          return;
+        }
+
+        setAssignments(assignmentsResponse.data);
+
+        // Fetch class students
+        const classResponse = await api.get(`/api/classes/${classId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (classResponse.data.success && classResponse.data.data.students) {
+          const students = classResponse.data.data.students;
+          const studentsById: Record<number, any> = {};
+
+          students.forEach((student: any) => {
+            if (student.user) {
+              studentsById[student.user.id] = student.user;
+            }
+          });
+
+          setStudentsMap(studentsById);
+        }
+
+        // If we have assignments, select the first one and load its submissions
+        if (assignmentsResponse.data.length > 0) {
+          const firstAssignment = assignmentsResponse.data[0];
+          setSelectedAssignment(firstAssignment);
+
+          await fetchSubmissionsForAssignment(
+            firstAssignment.id,
+            token,
+            studentsMap
+          );
+        }
+      } catch (error: any) {
+        console.error('Error fetching data:', error);
+        setError(error.message || 'Không thể tải dữ liệu bài tập');
+      } finally {
+        setLoading(false);
       }
-      setScores(scores.map((s) => (s.id === id ? editData : s)));
-      setEditingId(null);
-      setEditData(null);
-    }
-  };
+    };
 
-  const handleCancelEdit = () => {
-    setEditingId(null);
-    setEditData(null);
-  };
+    fetchData();
+  }, [classId]);
 
-  const handleDelete = (id: string) => {
-    if (confirm('Bạn có chắc muốn xóa điểm của học sinh này?')) {
-      setScores(scores.filter((s) => s.id !== id));
-    }
-  };
-
-  const handleEditChange = (
-    field: keyof ScoreProps,
-    value: string | number | null
+  // Fetch submissions for a specific assignment
+  const fetchSubmissionsForAssignment = async (
+    assignmentId: number,
+    token: string,
+    studentsData: Record<number, any> = studentsMap
   ) => {
-    if (editData) {
-      setEditData({ ...editData, [field]: value });
+    try {
+      const submissionsResponse = await api.get(
+        `/api/submissions/submissions/assignment/${assignmentId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (Array.isArray(submissionsResponse.data)) {
+        // Map submission data and include user names
+        const submissionsData = submissionsResponse.data.map(
+          (submission: any) => ({
+            ...submission,
+            submissionTime: submission.submissionTime,
+            userName:
+              studentsData[submission.userId]?.userName ||
+              `User ID: ${submission.userId}`,
+          })
+        );
+
+        setSubmissions(submissionsData);
+        setFilteredSubmissions(submissionsData);
+      }
+    } catch (err: any) {
+      console.error('Error fetching submissions:', err);
+      if (err.response && err.response.status === 401) {
+        setError('Không có quyền truy cập dữ liệu bài nộp');
+      } else {
+        setError('Không thể tải danh sách bài nộp. Vui lòng thử lại sau.');
+      }
     }
   };
+
+  // Handle assignment selection
+  const handleSelectAssignment = async (assignment: Assignment) => {
+    setSelectedAssignment(assignment);
+    setSearchTerm('');
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setError('Vui lòng đăng nhập để xem bài nộp');
+      return;
+    }
+
+    await fetchSubmissionsForAssignment(assignment.id, token);
+  };
+
+  // Handle search
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
+
+    if (!value.trim()) {
+      setFilteredSubmissions(submissions);
+      return;
+    }
+
+    const filtered = submissions.filter(
+      (submission) =>
+        submission.userName.toLowerCase().includes(value.toLowerCase()) ||
+        submission.file.toLowerCase().includes(value.toLowerCase())
+    );
+
+    setFilteredSubmissions(filtered);
+  };
+
+  // Handle saving a grade
+  const handleSaveGrade = async (submissionId: number, grade: number) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Vui lòng đăng nhập để chấm điểm');
+    }
+
+    // Try multiple approaches to handle potential API inconsistencies
+    try {
+      // First try the specific grading endpoint
+      const response = await api.post(
+        `/api/submissions/grade/${submissionId}`,
+        { grade },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      console.log('Grade submission response:', response);
+    } catch (gradeError) {
+      console.error('Error with grade endpoint:', gradeError);
+
+      // Fall back to the update endpoint
+      const submission = submissions.find((s) => s.id === submissionId);
+      if (!submission) throw new Error('Không tìm thấy bài nộp');
+
+      await api.put(
+        `/api/submissions/update/${submissionId}`,
+        {
+          ...submission,
+          grade: grade,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+    }
+
+    // Update local state
+    const updatedSubmissions = submissions.map((sub) =>
+      sub.id === submissionId ? { ...sub, grade } : sub
+    );
+
+    setSubmissions(updatedSubmissions);
+    setFilteredSubmissions(
+      filteredSubmissions.map((sub) =>
+        sub.id === submissionId ? { ...sub, grade } : sub
+      )
+    );
+  };
+
+  // Export grades to Excel
+  const handleExportGrades = () => {
+    if (!selectedAssignment) return;
+
+    try {
+      // Format data for export
+      const exportData = filteredSubmissions.map((submission) => ({
+        'Mã sinh viên': submission.userId,
+        'Tên sinh viên': submission.userName,
+        'Trạng thái': submission.status === 2 ? 'Đã nộp' : 'Chưa hoàn thành',
+        File: submission.file || 'Không có file',
+        'Ngày nộp': new Date(submission.submissionTime).toLocaleString('vi-VN'),
+        Điểm: submission.grade !== null ? submission.grade : 'Chưa chấm',
+      }));
+
+      // Create worksheet
+      const worksheet = XLSX.utils.json_to_sheet(exportData);
+
+      // Create workbook
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Bảng điểm');
+
+      // Generate filename
+      const assignmentTitle = selectedAssignment.title
+        .replace(/[^a-zA-Z0-9]/g, '_')
+        .substring(0, 30);
+      const timestamp = new Date()
+        .toISOString()
+        .replace(/[:.]/g, '-')
+        .substring(0, 19);
+      const filename = `BangDiem_${assignmentTitle}_${timestamp}.xlsx`;
+
+      // Save file
+      XLSX.writeFile(workbook, filename);
+    } catch (error) {
+      console.error('Error exporting grades:', error);
+      alert('Có lỗi xảy ra khi xuất điểm. Vui lòng thử lại sau.');
+    }
+  };
+
+  if (loading) {
+    return <div className="p-4 text-center">Đang tải dữ liệu...</div>;
+  }
+
+  if (error) {
+    return <div className="p-4 text-center text-red-500">Lỗi: {error}</div>;
+  }
 
   return (
     <div className="no-scrollbar flex w-full flex-col overflow-auto scroll-smooth p-4">
       <Title title="Quản lý điểm" />
       <div className="-mt-8 flex justify-between">
-        <SearchBox />
+        <SearchBox onSearch={handleSearch} />
         <div className="flex">
-          <Profile
-            name="TranBaLoi"
-            role="Giáo viên"
-            image="../../src/assets/avatar.png"
-          />
+          {user && (
+            <Profile
+              name={user.userName}
+              role={user.role.name}
+              image={user.avatar || '../../src/assets/avatar.png'}
+            />
+          )}
         </div>
       </div>
       <div className="no-scrollbar h-screen w-full overflow-auto rounded-2xl bg-white p-4">
-        <div className="flex w-full justify-end">
-          <button
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 text-white transition-colors hover:bg-blue-600"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="size-5"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 4.5v15m7.5-7.5h-15"
-              />
-            </svg>
-            Thêm điểm
-          </button>
+        {/* Danh sách bài tập */}
+        <div className="mb-6">
+          <h2 className="mb-3 text-xl font-semibold">Chọn bài tập</h2>
+          <div className="flex flex-wrap gap-3">
+            {assignments.length > 0 ? (
+              assignments.map((assignment) => (
+                <button
+                  key={assignment.id}
+                  onClick={() => handleSelectAssignment(assignment)}
+                  className={`rounded-lg px-4 py-2 ${
+                    selectedAssignment?.id === assignment.id
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                  }`}
+                >
+                  {assignment.title}
+                </button>
+              ))
+            ) : (
+              <p className="text-gray-500">
+                Không có bài tập nào trong lớp học này
+              </p>
+            )}
+          </div>
         </div>
-        <table className="mt-4 w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-200">
-              <th className="border p-2 text-left">Mã HS</th>
-              <th className="border p-2 text-left">Tên học sinh</th>
-              <th className="border p-2 text-left">CC</th>
-              <th className="border p-2 text-left">Bài tập</th>
-              <th className="border p-2 text-left">Giữa kỳ</th>
-              <th className="border p-2 text-left">Thi</th>
-              <th className="border p-2 text-left">Hành động</th>
-            </tr>
-          </thead>
-          <tbody>
-            {scores.map((score) => (
-              <tr key={score.id} className="hover:bg-gray-100">
-                <td className="border p-2">
-                  {editingId === score.id ? (
-                    <input
-                      type="text"
-                      value={editData?.id || ''}
-                      onChange={(e) => handleEditChange('id', e.target.value)}
-                      className="w-full rounded-lg border border-gray-300 p-1"
+
+        {/* Thông tin bài tập đã chọn */}
+        {selectedAssignment && (
+          <div className="mb-6 rounded-lg bg-blue-50 p-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-blue-800">
+                  {selectedAssignment.title}
+                </h3>
+                <p className="mt-1 text-sm text-blue-600">
+                  Hạn nộp:{' '}
+                  {new Date(selectedAssignment.deadline).toLocaleString(
+                    'vi-VN'
+                  )}
+                </p>
+                <p className="mt-1 text-sm text-gray-600">
+                  {selectedAssignment.description}
+                </p>
+              </div>
+
+              <div className="mt-4 flex items-center md:mt-0">
+                <button
+                  onClick={handleExportGrades}
+                  className="flex items-center gap-1 rounded-lg bg-green-500 px-4 py-2 text-white hover:bg-green-600"
+                  disabled={filteredSubmissions.length === 0}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                     />
-                  ) : (
-                    score.id
-                  )}
-                </td>
-                <td className="border p-2">
-                  {editingId === score.id ? (
-                    <input
-                      type="text"
-                      value={editData?.name || ''}
-                      onChange={(e) => handleEditChange('name', e.target.value)}
-                      className="w-full rounded-lg border border-gray-300 p-1"
-                    />
-                  ) : (
-                    score.name
-                  )}
-                </td>
-                <td className="border p-2">
-                  {editingId === score.id ? (
-                    <input
-                      type="text"
-                      value={editData?.score1 ?? ''}
-                      onChange={(e) =>
-                        handleEditChange(
-                          'score1',
-                          e.target.value ? parseFloat(e.target.value) : null
-                        )
-                      }
-                      className="w-full rounded-lg border border-gray-300 p-1"
-                    />
-                  ) : (
-                    (score.score1 ?? '-')
-                  )}
-                </td>
-                <td className="border p-2">
-                  {editingId === score.id ? (
-                    <input
-                      type="text"
-                      value={editData?.score2 ?? ''}
-                      onChange={(e) =>
-                        handleEditChange(
-                          'score2',
-                          e.target.value ? parseFloat(e.target.value) : null
-                        )
-                      }
-                      className="w-full rounded-lg border border-gray-300 p-1"
-                    />
-                  ) : (
-                    (score.score2 ?? '-')
-                  )}
-                </td>
-                <td className="border p-2">
-                  {editingId === score.id ? (
-                    <input
-                      type="text"
-                      value={editData?.score3 ?? ''}
-                      onChange={(e) =>
-                        handleEditChange(
-                          'score3',
-                          e.target.value ? parseFloat(e.target.value) : null
-                        )
-                      }
-                      className="w-full rounded-lg border border-gray-300 p-1"
-                    />
-                  ) : (
-                    (score.score3 ?? '-')
-                  )}
-                </td>
-                <td className="border p-2">
-                  {editingId === score.id ? (
-                    <input
-                      type="text"
-                      value={editData?.score4 ?? ''}
-                      onChange={(e) =>
-                        handleEditChange(
-                          'score4',
-                          e.target.value ? parseFloat(e.target.value) : null
-                        )
-                      }
-                      className="w-full rounded-lg border border-gray-300 p-1"
-                    />
-                  ) : (
-                    (score.score4 ?? '-')
-                  )}
-                </td>
-                <td className="border p-2">
-                  {editingId === score.id ? (
-                    <>
-                      <button
-                        onClick={() => handleSaveEdit(score.id)}
-                        className="mr-2 rounded-lg bg-green-500 px-2 py-1 text-white hover:bg-green-600"
-                      >
-                        Lưu
-                      </button>
-                      <button
-                        onClick={handleCancelEdit}
-                        className="rounded-lg bg-gray-500 px-2 py-1 text-white hover:bg-gray-600"
-                      >
-                        Hủy
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        onClick={() => handleEdit(score)}
-                        className="mr-2 rounded-lg bg-yellow-500 px-2 py-1 text-white hover:bg-yellow-600"
-                      >
-                        Sửa
-                      </button>
-                      <button
-                        onClick={() => handleDelete(score.id)}
-                        className="rounded-lg bg-red-500 px-2 py-1 text-white hover:bg-red-600"
-                      >
-                        Xóa
-                      </button>
-                    </>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  </svg>
+                  Xuất Excel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Danh sách bài nộp */}
+        {selectedAssignment && (
+          <>
+            <div className="mb-3 flex justify-between">
+              <h2 className="text-xl font-semibold">Danh sách bài nộp</h2>
+              <p className="text-gray-600">
+                Tổng số: {filteredSubmissions.length} bài nộp
+              </p>
+            </div>
+
+            {filteredSubmissions.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                        Sinh viên
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                        Trạng thái
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                        File
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                        Ngày nộp
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                        Điểm
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                        Thao tác
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 bg-white">
+                    {filteredSubmissions.map((submission) => (
+                      <tr key={submission.id}>
+                        <td className="whitespace-nowrap px-6 py-4">
+                          {submission.userName}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4">
+                          <span
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                              submission.status === 2
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}
+                          >
+                            {submission.status === 2
+                              ? 'Đã nộp'
+                              : 'Chưa hoàn thành'}
+                          </span>
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4">
+                          {submission.file || '-'}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4">
+                          {formatDate(submission.submissionTime)}
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4">
+                          <div className="flex items-center">
+                            <span
+                              className={
+                                submission.grade !== null
+                                  ? 'font-medium'
+                                  : 'text-gray-500'
+                              }
+                            >
+                              {submission.grade !== null
+                                ? submission.grade
+                                : 'Chưa chấm'}
+                            </span>
+                            {submission.grade !== null && (
+                              <span className="ml-2 inline-flex h-2 w-2 rounded-full bg-green-500"></span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="whitespace-nowrap px-6 py-4">
+                          <button
+                            onClick={() => {
+                              // Open grade modal with current submission
+                              // We would implement this with a modal similar to Assignment.tsx
+                              const newGrade = prompt(
+                                'Nhập điểm (0-10):',
+                                submission.grade?.toString() || ''
+                              );
+                              if (newGrade !== null) {
+                                const grade = parseFloat(newGrade);
+                                if (
+                                  !isNaN(grade) &&
+                                  grade >= 0 &&
+                                  grade <= 10
+                                ) {
+                                  handleSaveGrade(submission.id, grade);
+                                } else {
+                                  alert('Điểm phải là số từ 0 đến 10!');
+                                }
+                              }
+                            }}
+                            className="rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+                          >
+                            Chấm điểm
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-6 text-center text-gray-500">
+                {searchTerm
+                  ? 'Không tìm thấy bài nộp phù hợp với từ khóa tìm kiếm'
+                  : 'Chưa có bài nộp nào cho bài tập này'}
+              </div>
+            )}
+          </>
+        )}
       </div>
-      <ScoreModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSave={handleAddScore}
-      />
     </div>
   );
 };

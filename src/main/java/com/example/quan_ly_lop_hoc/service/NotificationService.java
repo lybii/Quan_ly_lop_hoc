@@ -101,6 +101,12 @@ public class NotificationService {
     }
 
     //Lấy danh sách
+    public List<NotificationResponse> getAllNotifications() {
+        List<Notifications> notifications = notificationRepository.findAll();
+        return notifications.stream()
+            .map(this::convertToResponse)
+            .collect(Collectors.toList());
+    }
 
     //Lấy chi tiết
     public NotificationResponse getNotificationById(int id) {

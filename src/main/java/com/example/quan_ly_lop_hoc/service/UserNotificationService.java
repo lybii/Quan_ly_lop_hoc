@@ -8,13 +8,14 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.example.quan_ly_lop_hoc.dto.NotificationResponse;
+import com.example.quan_ly_lop_hoc.dto.UserNotificationRequest;
 import com.example.quan_ly_lop_hoc.entity.Notifications;
 import com.example.quan_ly_lop_hoc.entity.User;
 import com.example.quan_ly_lop_hoc.entity.UserNotification;
 import com.example.quan_ly_lop_hoc.repository.NotificationRepository;
 import com.example.quan_ly_lop_hoc.repository.UserNotificationRepository;
 import com.example.quan_ly_lop_hoc.repository.UserRepository;
-import com.example.quan_ly_lop_hoc.dto.UserNotificationRequest;
 
 @Service
 public class UserNotificationService {
@@ -62,5 +63,45 @@ public class UserNotificationService {
     public void deleteUserNotificationsByNotificationId(int notificationId) {
         List<UserNotification> list = userNotificationRepository.findAllByNotificationId(notificationId);
         userNotificationRepository.deleteAll(list);
+    }
+    
+    // Lấy tất cả thông báo của một user
+    public List<NotificationResponse> getUserNotifications(int userId) {
+        // Kiểm tra xem user có tồn tại không
+        if (!userRepository.existsById(userId)) {
+            throw new RuntimeException("Không tìm thấy người dùng với ID: " + userId);
+        }
+        
+        // Lấy tất cả UserNotification của user đó
+        List<UserNotification> userNotifications = userNotificationRepository.findAllByUserIdOrderByTimeDesc(userId);
+        
+        // Chuyển đổi thành NotificationResponse
+        return userNotifications.stream().map(un -> {
+            Notifications notification = un.getNotification();
+            return new NotificationResponse(
+                notification.getId(),
+                notification.getTitle(),
+                notification.getContent(),
+                notification.getStatus(),
+                notification.getUser().getId(),
+                un.getTime()
+            );
+        }).collect(Collectors.toList());
+    }
+    
+    // Đánh dấu thông báo đã đọc
+    public void markNotificationAsRead(int notificationId, int userId) {
+        Optional<UserNotification> optionalUN = userNotificationRepository.findByNotificationIdAndUserId(notificationId, userId);
+        
+        if (optionalUN.isEmpty()) {
+            throw new RuntimeException("Không tìm thấy thông báo này cho người dùng");
+        }
+        
+        UserNotification userNotification = optionalUN.get();
+        Notifications notification = userNotification.getNotification();
+        
+        // Đánh dấu thông báo đã đọc (status = 0)
+        notification.setStatus(0);
+        notificationRepository.save(notification);
     }
 }

@@ -1,5 +1,8 @@
 package com.example.quan_ly_lop_hoc.controller;
 
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -105,13 +108,22 @@ public ResponseEntity<?> updateNotification(
     }
 
     //Lấy danh sách
+    @GetMapping
+    @PreAuthorize("hasRole('LECTURER') or hasRole('ADMIN')")
+    public ResponseEntity<?> getAllNotifications() {
+        List<NotificationResponse> notifications = notificationService.getAllNotifications();
+        return ResponseEntity.ok(Map.of(
+            "success", true,
+            "data", notifications
+        ));
+    }
 
 
     //Lấy chi tiết
-    @GetMapping("/notifications/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity<NotificationResponse> getNotificationById(@PathVariable int id) {
-    NotificationResponse notificationResponse = notificationService.getNotificationById(id);
-    return ResponseEntity.ok(notificationResponse);
+        NotificationResponse notificationResponse = notificationService.getNotificationById(id);
+        return ResponseEntity.ok(notificationResponse);
     }
 
 
