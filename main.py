@@ -18,8 +18,8 @@ def get_connection():
         password="",
         database="quanlylophoc"
     )
-    
 
+    
 @app.post("/face-checkin/")
 def detect_face_once():
     return run_once_and_return_result()

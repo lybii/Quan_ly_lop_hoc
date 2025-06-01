@@ -9,7 +9,7 @@ from database import add_face_recognition  # Thêm dòng này để gọi hàm g
 
 
 class FaceRecognitionRealTime:
-    def __init__(self, face_match_threshold=0.5):
+    def __init__(self, face_match_threshold=0.5,db_path="quanlylophoc.db"):
         self.face_locations = []
         self.face_encodings = []
         self.face_names = []
@@ -19,6 +19,7 @@ class FaceRecognitionRealTime:
         self.face_match_threshold = face_match_threshold
         self.encode_faces()
         self.already_checked_in = set()  # Để tránh điểm danh trùng
+        self.db_path = db_path
 
     def encode_faces(self):
         os.makedirs('static/faces_realtime', exist_ok=True)
@@ -110,70 +111,8 @@ class FaceRecognitionRealTime:
                 break
 
         cap.release()
-"""
-def run_once_and_return_result(app=None, max_attempts=100, show_window=False):
-    cap = cv2.VideoCapture(0)
-    if not cap.isOpened():
-        return {"status": "error", "message": "Cannot open camera"}
-
-    if app is None:
-        app = FaceRecognitionRealTime()
-
-    result = []
-    attempts = 0
-
-    while attempts < max_attempts:
-        ret, frame = cap.read()
-        if not ret:
-            break
-
-        frame = cv2.flip(frame, 1)
-        small_frame = cv2.resize(frame, (0, 0), fx=0.25, fy=0.25)
-        rgb_small_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
-
-        face_locations = face_recognition.face_locations(rgb_small_frame)
-        face_encodings = face_recognition.face_encodings(rgb_small_frame, face_locations)
-
-        for face_encoding in face_encodings:
-            face_distances = face_recognition.face_distance(app.known_face_encodings, face_encoding)
-            best_match_index = np.argmin(face_distances)
-            best_distance = face_distances[best_match_index]
-
-            if best_distance <= app.face_match_threshold:
-                try:
-                    name_raw = app.known_face_names[best_match_index]
-                    ten, user_id_str, lecture_id_str = name_raw.split('-')
-                    user_id = int(user_id_str)
-                    lecture_id = int(lecture_id_str)
-
-                    key = (user_id, lecture_id)
-                    if key not in app.already_checked_in:
-                        add_face_recognition(ten, user_id, lecture_id)
-                        app.already_checked_in.add(key)
-
-                    cap.release()
-                    cv2.destroyAllWindows()
-                    return {
-                        "status": "success",
-                        "ten": ten,
-                        "user_id": user_id,
-                        "lecture_id": lecture_id
-                    }
-                except Exception as e:
-                    return {"status": "error", "message": str(e)}
-
-        if show_window:
-            cv2.imshow("Checking...", frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-
-        attempts += 1
-
-    cap.release()
-    cv2.destroyAllWindows()
-    return {"status": "not_found", "message": "Không nhận diện được khuôn mặt"}
-"""
-
+        
+        
 def run_once_and_return_result(app=None, show_window=True):
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
