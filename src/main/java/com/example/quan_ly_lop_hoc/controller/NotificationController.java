@@ -108,17 +108,12 @@ public ResponseEntity<?> updateNotification(
     }
 
     //Lấy danh sách
-    @GetMapping
-    @PreAuthorize("hasRole('LECTURER') or hasRole('ADMIN')")
-    public ResponseEntity<?> getAllNotifications() {
-        List<NotificationResponse> notifications = notificationService.getAllNotifications();
-        return ResponseEntity.ok(Map.of(
-            "success", true,
-            "data", notifications
-        ));
+    @GetMapping("/class/{classId}")
+    public ResponseEntity<List<NotificationResponse>> getNotificationsByClassId(@PathVariable int classId) {
+        List<NotificationResponse> notifications = notificationService.getNotificationsByClassId(classId);
+        return ResponseEntity.ok(notifications);
     }
-
-
+    
     //Lấy chi tiết
     @GetMapping("/{id}")
     public ResponseEntity<NotificationResponse> getNotificationById(@PathVariable int id) {

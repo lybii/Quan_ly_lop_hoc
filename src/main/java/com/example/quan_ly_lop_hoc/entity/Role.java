@@ -2,6 +2,8 @@ package com.example.quan_ly_lop_hoc.entity;
 import jakarta.persistence.*;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity(name = "role")
 public class Role {
     @Id
@@ -12,6 +14,7 @@ public class Role {
     private String name;
 
     @OneToMany(mappedBy = "role")
+    @JsonIgnore
     private List<User> users;
     
 
