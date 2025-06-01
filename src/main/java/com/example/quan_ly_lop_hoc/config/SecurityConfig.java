@@ -90,6 +90,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/submissions/**").authenticated()
                 .requestMatchers("/api/user-notifications/**").authenticated()
                 .requestMatchers("/api/attendances/**").authenticated()
+                .requestMatchers("/api/class-notifications/**").authenticated()
                 .anyRequest().authenticated())
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
             
