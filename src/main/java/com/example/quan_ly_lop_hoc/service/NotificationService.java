@@ -1,5 +1,7 @@
 package com.example.quan_ly_lop_hoc.service;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -17,9 +19,13 @@ import com.example.quan_ly_lop_hoc.dto.NotificationRequest;
 import com.example.quan_ly_lop_hoc.dto.NotificationResponse;
 import com.example.quan_ly_lop_hoc.entity.Notifications;
 import com.example.quan_ly_lop_hoc.entity.User;
-import com.example.quan_ly_lop_hoc.repository.ClassNotificationRepository;
 import com.example.quan_ly_lop_hoc.repository.NotificationRepository;
+import com.example.quan_ly_lop_hoc.repository.UserNotificationRepository;
 import com.example.quan_ly_lop_hoc.repository.UserRepository;
+import java.util.Map;
+import java.util.LinkedHashMap;
+import java.util.ArrayList;
+
 
 
 @Service
@@ -32,8 +38,7 @@ public class NotificationService {
     private UserRepository userRepository;
 
     @Autowired
-    private ClassNotificationRepository classNotificationRepository;
-
+    private UserNotificationRepository userNotificationRepository;
 
     private NotificationResponse convertToResponse(Notifications notification) {
         return new NotificationResponse(
@@ -105,22 +110,6 @@ public class NotificationService {
     notificationRepository.delete(notification);
     }
 
-    //Lấy danh sách
-
-    public List<NotificationResponse> getNotificationsByClassId(Integer classId) {
-    return classNotificationRepository.findByClassId(classId).stream()
-        .map(cn -> {
-            Notifications notif = cn.getNotification();
-            return new NotificationResponse(
-                notif.getId(),
-                notif.getTitle(),
-                notif.getContent(),
-                notif.getStatus(),
-                notif.getUser() != null ? notif.getUser().getId() : 0
-            );
-        })
-        .collect(Collectors.toList());
-}
     //Lấy chi tiết
     public NotificationResponse getNotificationById(int id) {
     Notifications notification = notificationRepository.findById(id)
@@ -129,5 +118,49 @@ public class NotificationService {
     return convertToResponse(notification);
     }
 
+    //Lấy danh sách
+    /*public List<Notifications> getNotificationsByClassId(int classId) {
+        return userNotificationRepository.findNotificationsByClassId(classId);
+
+}*/
+/*public List<NotificationResponse> getNotificationsByClassId(int classId) {
+    List<Object[]> results = userNotificationRepository.findNotificationsByClassId(classId);
+    return results.stream()
+        .map(row -> new NotificationResponse(
+            ((Number) row[0]).intValue(),    // n.id
+            (String) row[1],                 // n.title
+            (String) row[2],                 // n.content
+            ((Number) row[3]).intValue(),    // n.status
+            ((Number) row[4]).intValue()     // u.id as userId
+        ))
+        .collect(Collectors.toList());
+}
+*/
+public List<NotificationResponse> getNotificationsByClassId(int classId) {
+    List<Object[]> results = userNotificationRepository.findNotificationsByClassId(classId);
+
+    // Dùng LinkedHashMap để loại bỏ trùng, giữ thứ tự theo notification id
+    Map<Integer, NotificationResponse> distinctMap = new LinkedHashMap<>();
+
+    for (Object[] row : results) {
+        int notificationId = ((Number) row[0]).intValue();
+
+        // Nếu chưa có thông báo này trong map thì thêm vào
+        if (!distinctMap.containsKey(notificationId)) {
+            NotificationResponse response = new NotificationResponse(
+                notificationId,
+                (String) row[1],                   // title
+                (String) row[2],                   // content
+                ((Number) row[3]).intValue(),     // status
+                ((Number) row[4]).intValue()      // userId
+            );
+            distinctMap.put(notificationId, response);
+        }
+        // Nếu đã có rồi thì bỏ qua (loại trùng)
+    }
+
+    return new ArrayList<>(distinctMap.values());
 }
 
+
+}

@@ -57,5 +57,4 @@ public ResponseEntity<?> deleteUserNotificationsByNotificationId(@PathVariable i
         return ResponseEntity.badRequest().body(ex.getMessage());
     }
 }
-
 }
