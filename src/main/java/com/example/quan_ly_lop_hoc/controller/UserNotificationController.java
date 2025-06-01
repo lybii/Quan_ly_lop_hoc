@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import com.example.quan_ly_lop_hoc.dto.NotificationResponse;
 import com.example.quan_ly_lop_hoc.dto.UserNotificationRequest;
 import com.example.quan_ly_lop_hoc.entity.User;
 import com.example.quan_ly_lop_hoc.service.UserNotificationService;
@@ -56,4 +57,5 @@ public ResponseEntity<?> deleteUserNotificationsByNotificationId(@PathVariable i
         return ResponseEntity.badRequest().body(ex.getMessage());
     }
 }
+
 }

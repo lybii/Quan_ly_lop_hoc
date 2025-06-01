@@ -16,7 +16,9 @@ import com.example.quan_ly_lop_hoc.repository.ClassUserRepository;
 import com.example.quan_ly_lop_hoc.repository.NotificationRepository;
 import com.example.quan_ly_lop_hoc.repository.UserNotificationRepository;
 import com.example.quan_ly_lop_hoc.repository.UserRepository;
+import com.example.quan_ly_lop_hoc.dto.NotificationResponse;
 import com.example.quan_ly_lop_hoc.dto.UserNotificationRequest;
+import com.example.quan_ly_lop_hoc.dto.UserNotificationResponse;
 
 @Service
 public class UserNotificationService {
@@ -73,4 +75,5 @@ public class UserNotificationService {
         List<UserNotification> list = userNotificationRepository.findAllByNotificationId(notificationId);
         userNotificationRepository.deleteAll(list);
     }
+
 }
