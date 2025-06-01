@@ -17,6 +17,7 @@ import com.example.quan_ly_lop_hoc.dto.NotificationRequest;
 import com.example.quan_ly_lop_hoc.dto.NotificationResponse;
 import com.example.quan_ly_lop_hoc.entity.User;
 import com.example.quan_ly_lop_hoc.service.NotificationService;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/notifications")
@@ -104,7 +105,16 @@ public ResponseEntity<?> updateNotification(
     return ResponseEntity.ok("Xóa thông báo thành công");
     }
 
-    //Lấy danh sách
+    // 🔹 Lấy danh sách thông báo theo classId
+@GetMapping("/class/{classId}")
+@PreAuthorize("hasRole('LECTURER') or hasRole('ADMIN')")
+public ResponseEntity<List<NotificationResponse>> getNotificationsByClassId(@PathVariable Integer classId) {
+    List<NotificationResponse> notifications = notificationService.getNotificationsByClassId(classId);
+    if (notifications.isEmpty()) {
+        return ResponseEntity.noContent().build();
+    }
+    return ResponseEntity.ok(notifications);
+}
 
 
     //Lấy chi tiết

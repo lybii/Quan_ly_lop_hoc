@@ -17,6 +17,7 @@ import com.example.quan_ly_lop_hoc.dto.NotificationRequest;
 import com.example.quan_ly_lop_hoc.dto.NotificationResponse;
 import com.example.quan_ly_lop_hoc.entity.Notifications;
 import com.example.quan_ly_lop_hoc.entity.User;
+import com.example.quan_ly_lop_hoc.repository.ClassNotificationRepository;
 import com.example.quan_ly_lop_hoc.repository.NotificationRepository;
 import com.example.quan_ly_lop_hoc.repository.UserRepository;
 
@@ -29,6 +30,10 @@ public class NotificationService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ClassNotificationRepository classNotificationRepository;
+
 
     private NotificationResponse convertToResponse(Notifications notification) {
         return new NotificationResponse(
@@ -102,6 +107,20 @@ public class NotificationService {
 
     //Lấy danh sách
 
+    public List<NotificationResponse> getNotificationsByClassId(Integer classId) {
+    return classNotificationRepository.findByClassId(classId).stream()
+        .map(cn -> {
+            Notifications notif = cn.getNotification();
+            return new NotificationResponse(
+                notif.getId(),
+                notif.getTitle(),
+                notif.getContent(),
+                notif.getStatus(),
+                notif.getUser() != null ? notif.getUser().getId() : 0
+            );
+        })
+        .collect(Collectors.toList());
+}
     //Lấy chi tiết
     public NotificationResponse getNotificationById(int id) {
     Notifications notification = notificationRepository.findById(id)
