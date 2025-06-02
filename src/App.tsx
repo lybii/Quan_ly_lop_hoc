@@ -12,6 +12,7 @@ import StudentRoutes from './routes/Student_routes';
 import Sidebar from './components/sidebar/Sidebar';
 import AdminSidebar from './components/sidebar/Admin_sidebar';
 import TeacherSidebar from './components/sidebar/Teacher_sidebar';
+import Chatbot from './components/Chatbot';
 
 // Protected Route component
 const ProtectedRoute = ({
@@ -101,6 +102,7 @@ function App() {
                 <Sidebar />
                 <div className="flex-1 overflow-auto p-4">
                   <StudentRoutes />
+                  <Chatbot />
                 </div>
               </div>
             </ProtectedRoute>

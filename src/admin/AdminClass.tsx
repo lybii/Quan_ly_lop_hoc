@@ -25,6 +25,17 @@ interface ClassData {
   studentIds: null;
 }
 
+interface Lecture {
+  id: number;
+  title: string;
+  description: string;
+  file: string;
+  startTime: string;
+  endTime: string;
+  status: number;
+  classId: number;
+}
+
 interface User {
   id: number;
   userName: string;
@@ -47,15 +58,19 @@ export const Classroom: React.FC = () => {
   const [isAddCourseModalOpen, setIsAddCourseModalOpen] = useState(false);
   const [isEditCourseModalOpen, setIsEditCourseModalOpen] = useState(false);
   const [isEditClassModalOpen, setIsEditClassModalOpen] = useState(false);
+  const [isAddLectureModalOpen, setIsAddLectureModalOpen] = useState(false);
+  const [isEditLectureModalOpen, setIsEditLectureModalOpen] = useState(false);
   const [className, setClassName] = useState('');
   const [classType, setClassType] = useState('lý thuyết');
   const [classCount, setClassCount] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('all');
   const [courses, setCourses] = useState<Course[]>([]);
   const [classes, setClasses] = useState<ClassData[]>([]);
+  const [lectures, setLectures] = useState<Lecture[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [selectedClass, setSelectedClass] = useState<ClassData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [lecturesLoading, setLecturesLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [teachers, setTeachers] = useState<User[]>([]);
@@ -74,6 +89,16 @@ export const Classroom: React.FC = () => {
 
   // Add this after existing state declarations
   const [userProfile, setUserProfile] = useState<User | null>(null);
+
+  // Lecture form states
+  const [lectureTitle, setLectureTitle] = useState('');
+  const [lectureDescription, setLectureDescription] = useState('');
+  const [lectureFile, setLectureFile] = useState('');
+  const [lectureFileObj, setLectureFileObj] = useState<File | null>(null);
+  const [lectureStartTime, setLectureStartTime] = useState('');
+  const [lectureEndTime, setLectureEndTime] = useState('');
+  const [lectureStatus, setLectureStatus] = useState(1);
+  const [selectedLecture, setSelectedLecture] = useState<Lecture | null>(null);
 
   // Configure axios with auth headers
   useEffect(() => {
@@ -252,9 +277,49 @@ export const Classroom: React.FC = () => {
     }
   };
 
+  // Fetch lectures for a selected class
+  const fetchLecturesForClass = async (classId: number) => {
+    try {
+      setLecturesLoading(true);
+      setError(null);
+
+      // Get token from localStorage for this specific request
+      const token = localStorage.getItem('token');
+
+      const response = await axios.get(
+        `http://localhost:8080/api/lectures/lectures/class/${classId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data) {
+        setLectures(response.data);
+      }
+    } catch (error: any) {
+      console.error('Error fetching lectures:', error);
+      if (error.response && error.response.status === 401) {
+        setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+      } else {
+        setError(`Không thể tải danh sách buổi học cho lớp ID: ${classId}`);
+      }
+    } finally {
+      setLecturesLoading(false);
+    }
+  };
+
   const handleCourseSelect = (course: Course) => {
     setSelectedCourse(course);
+    setSelectedClass(null);
+    setLectures([]);
     fetchClassesForCourse(course.id);
+  };
+
+  const handleClassSelect = (classData: ClassData) => {
+    setSelectedClass(classData);
+    fetchLecturesForClass(classData.id);
   };
 
   const handleOpenAddClassModal = () => {
@@ -860,6 +925,366 @@ export const Classroom: React.FC = () => {
     }
   };
 
+  // Format date and time
+  const formatDateTime = (dateTimeStr: string) => {
+    const date = new Date(dateTimeStr);
+    return new Intl.DateTimeFormat('vi-VN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
+  };
+
+  // Add this new function for handling lecture creation with file upload
+  const handleAddLecture = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!selectedClass) {
+      setError('Vui lòng chọn một lớp học trước khi thêm buổi học.');
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      setError('Bạn cần đăng nhập để thực hiện thao tác này.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Format dates to ISO string
+      const startTimeISO = new Date(lectureStartTime).toISOString();
+      const endTimeISO = new Date(lectureEndTime).toISOString();
+
+      // Handle file upload if file is selected
+      let filePath = lectureFile;
+      if (lectureFileObj) {
+        const formData = new FormData();
+        formData.append('file', lectureFileObj);
+
+        const fileUploadResponse = await axios.post(
+          'http://localhost:8080/api/upload',
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        );
+
+        if (fileUploadResponse.data && fileUploadResponse.data.filePath) {
+          filePath = fileUploadResponse.data.filePath;
+        } else {
+          setError('Không thể tải lên tệp. Vui lòng thử lại sau.');
+          setLoading(false);
+          return;
+        }
+      }
+
+      const newLecture = {
+        title: lectureTitle,
+        description: lectureDescription,
+        file: filePath,
+        startTime: startTimeISO,
+        endTime: endTimeISO,
+        status: lectureStatus,
+        classId: selectedClass.id,
+      };
+
+      const response = await axios.post(
+        'http://localhost:8080/api/lectures/add',
+        newLecture,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (response.data) {
+        // Refresh lectures list
+        fetchLecturesForClass(selectedClass.id);
+
+        // Reset form fields
+        setLectureTitle('');
+        setLectureDescription('');
+        setLectureFile('');
+        setLectureFileObj(null);
+        setLectureStartTime('');
+        setLectureEndTime('');
+        setLectureStatus(1);
+
+        // Show success message
+        setSuccessMessage('Buổi học đã được tạo thành công!');
+        setTimeout(() => {
+          setSuccessMessage(null);
+        }, 3000);
+
+        setIsAddLectureModalOpen(false);
+      } else {
+        setError(
+          response.data.message ||
+            'Không thể thêm buổi học. Vui lòng thử lại sau.'
+        );
+      }
+    } catch (error: any) {
+      console.error('Error adding lecture:', error);
+      let errorMsg = 'Không thể thêm buổi học. Vui lòng thử lại sau.';
+
+      if (error.response) {
+        console.error('Response error data:', error.response.data);
+        if (error.response.status === 401) {
+          errorMsg = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
+        } else if (error.response.data && error.response.data.message) {
+          errorMsg = error.response.data.message;
+        }
+      }
+
+      setError(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle file input change
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setLectureFileObj(file);
+      setLectureFile(file.name);
+    }
+  };
+
+  // Handle edit lecture
+  const handleEditLecture = (lecture: Lecture) => {
+    setSelectedLecture(lecture);
+    setLectureTitle(lecture.title);
+    setLectureDescription(lecture.description);
+    setLectureFile(lecture.file || '');
+    setLectureFileObj(null);
+
+    // Format dates for datetime-local input
+    const startDate = new Date(lecture.startTime);
+    const endDate = new Date(lecture.endTime);
+
+    setLectureStartTime(formatDateForInput(startDate));
+    setLectureEndTime(formatDateForInput(endDate));
+    setLectureStatus(lecture.status);
+
+    setIsEditLectureModalOpen(true);
+  };
+
+  // Handle update lecture
+  const handleUpdateLecture = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!selectedClass || !selectedLecture) {
+      setError('Không tìm thấy buổi học để cập nhật.');
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      setError('Bạn cần đăng nhập để thực hiện thao tác này.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Format dates to ISO string
+      const startTimeISO = new Date(lectureStartTime).toISOString();
+      const endTimeISO = new Date(lectureEndTime).toISOString();
+
+      // Handle file upload if new file is selected
+      let filePath = lectureFile;
+      if (lectureFileObj) {
+        const formData = new FormData();
+        formData.append('file', lectureFileObj);
+
+        const fileUploadResponse = await axios.post(
+          'http://localhost:8080/api/upload',
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'multipart/form-data',
+            },
+          }
+        );
+
+        if (fileUploadResponse.data && fileUploadResponse.data.filePath) {
+          filePath = fileUploadResponse.data.filePath;
+        } else {
+          setError('Không thể tải lên tệp. Vui lòng thử lại sau.');
+          setLoading(false);
+          return;
+        }
+      }
+
+      const updatedLecture = {
+        title: lectureTitle,
+        description: lectureDescription,
+        file: filePath,
+        startTime: startTimeISO,
+        endTime: endTimeISO,
+        status: lectureStatus,
+        classId: selectedClass.id,
+      };
+
+      const response = await axios.put(
+        `http://localhost:8080/api/lectures/update/${selectedLecture.id}`,
+        updatedLecture,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (response.data) {
+        // Refresh lectures list
+        fetchLecturesForClass(selectedClass.id);
+
+        // Reset form fields
+        setLectureTitle('');
+        setLectureDescription('');
+        setLectureFile('');
+        setLectureFileObj(null);
+        setLectureStartTime('');
+        setLectureEndTime('');
+        setLectureStatus(1);
+        setSelectedLecture(null);
+
+        // Show success message
+        setSuccessMessage('Buổi học đã được cập nhật thành công!');
+        setTimeout(() => {
+          setSuccessMessage(null);
+        }, 3000);
+
+        setIsEditLectureModalOpen(false);
+      } else {
+        setError(
+          response.data.message ||
+            'Không thể cập nhật buổi học. Vui lòng thử lại sau.'
+        );
+      }
+    } catch (error: any) {
+      console.error('Error updating lecture:', error);
+      let errorMsg = 'Không thể cập nhật buổi học. Vui lòng thử lại sau.';
+
+      if (error.response) {
+        console.error('Response error data:', error.response.data);
+        if (error.response.status === 401) {
+          errorMsg = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
+        } else if (error.response.data && error.response.data.message) {
+          errorMsg = error.response.data.message;
+        }
+      }
+
+      setError(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle delete lecture
+  const handleDeleteLecture = async (lectureId: number) => {
+    if (!window.confirm('Bạn có chắc chắn muốn xóa buổi học này không?')) {
+      return;
+    }
+
+    if (!selectedClass) {
+      setError('Không tìm thấy lớp học cho buổi học này.');
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      setError('Bạn cần đăng nhập để thực hiện thao tác này.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const response = await axios.delete(
+        `http://localhost:8080/api/lectures/delete/${lectureId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data) {
+        // Refresh lectures list
+        fetchLecturesForClass(selectedClass.id);
+
+        // Show success message
+        setSuccessMessage('Buổi học đã được xóa thành công!');
+        setTimeout(() => {
+          setSuccessMessage(null);
+        }, 3000);
+      } else {
+        setError(
+          response.data.message ||
+            'Không thể xóa buổi học. Vui lòng thử lại sau.'
+        );
+      }
+    } catch (error: any) {
+      console.error('Error deleting lecture:', error);
+      let errorMsg = 'Không thể xóa buổi học. Vui lòng thử lại sau.';
+
+      if (error.response) {
+        console.error('Response error data:', error.response.data);
+        if (error.response.status === 401) {
+          errorMsg = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
+        } else if (error.response.data && error.response.data.message) {
+          errorMsg = error.response.data.message;
+        }
+      }
+
+      setError(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Format date for datetime-local input
+  const formatDateForInput = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  // Initialize default lecture times when opening the modal
+  const handleOpenAddLectureModal = () => {
+    const now = new Date();
+    const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000);
+
+    setLectureStartTime(formatDateForInput(now));
+    setLectureEndTime(formatDateForInput(oneHourLater));
+
+    setIsAddLectureModalOpen(true);
+  };
+
   return (
     <div className="no-scrollbar flex w-full flex-col overflow-auto scroll-smooth p-4">
       <Title title="Quản lý lớp học" />
@@ -1340,6 +1765,230 @@ export const Classroom: React.FC = () => {
         </div>
       )}
 
+      {/* Add Lecture Modal */}
+      {isAddLectureModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
+            <h2 className="mb-4 text-xl font-bold">Thêm buổi học mới</h2>
+            <form onSubmit={handleAddLecture}>
+              <div className="mb-4 grid grid-cols-1 gap-4">
+                <div>
+                  <label className="mb-1 block text-sm font-medium">
+                    Tiêu đề buổi học
+                  </label>
+                  <input
+                    type="text"
+                    value={lectureTitle}
+                    onChange={(e) => setLectureTitle(e.target.value)}
+                    className="w-full rounded-lg border p-2"
+                    placeholder="Nhập tiêu đề buổi học"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium">
+                    Mô tả
+                  </label>
+                  <textarea
+                    value={lectureDescription}
+                    onChange={(e) => setLectureDescription(e.target.value)}
+                    className="w-full rounded-lg border p-2"
+                    placeholder="Nhập mô tả buổi học"
+                    rows={3}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium">
+                    Tài liệu
+                  </label>
+                  <input
+                    type="file"
+                    onChange={handleFileChange}
+                    className="w-full rounded-lg border p-2"
+                    accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx"
+                  />
+                  {lectureFile && (
+                    <p className="mt-1 text-sm text-gray-500">
+                      File hiện tại: {lectureFile}
+                    </p>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">
+                      Thời gian bắt đầu
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={lectureStartTime}
+                      onChange={(e) => setLectureStartTime(e.target.value)}
+                      className="w-full rounded-lg border p-2"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">
+                      Thời gian kết thúc
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={lectureEndTime}
+                      onChange={(e) => setLectureEndTime(e.target.value)}
+                      className="w-full rounded-lg border p-2"
+                      required
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium">
+                    Trạng thái
+                  </label>
+                  <select
+                    value={lectureStatus}
+                    onChange={(e) => setLectureStatus(parseInt(e.target.value))}
+                    className="w-full rounded-lg border p-2"
+                    required
+                  >
+                    <option value={1}>Đang hoạt động</option>
+                    <option value={0}>Đã kết thúc</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsAddLectureModalOpen(false)}
+                  className="rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-100"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+                  disabled={loading}
+                >
+                  {loading ? 'Đang xử lý...' : 'Thêm buổi học'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Lecture Modal */}
+      {isEditLectureModalOpen && selectedLecture && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl">
+            <h2 className="mb-4 text-xl font-bold">Cập nhật buổi học</h2>
+            <form onSubmit={handleUpdateLecture}>
+              <div className="mb-4 grid grid-cols-1 gap-4">
+                <div>
+                  <label className="mb-1 block text-sm font-medium">
+                    Tiêu đề buổi học
+                  </label>
+                  <input
+                    type="text"
+                    value={lectureTitle}
+                    onChange={(e) => setLectureTitle(e.target.value)}
+                    className="w-full rounded-lg border p-2"
+                    placeholder="Nhập tiêu đề buổi học"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium">
+                    Mô tả
+                  </label>
+                  <textarea
+                    value={lectureDescription}
+                    onChange={(e) => setLectureDescription(e.target.value)}
+                    className="w-full rounded-lg border p-2"
+                    placeholder="Nhập mô tả buổi học"
+                    rows={3}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium">
+                    Tài liệu
+                  </label>
+                  <input
+                    type="file"
+                    onChange={handleFileChange}
+                    className="w-full rounded-lg border p-2"
+                    accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx"
+                  />
+                  {lectureFile && (
+                    <p className="mt-1 text-sm text-gray-500">
+                      File hiện tại: {lectureFile}
+                    </p>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">
+                      Thời gian bắt đầu
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={lectureStartTime}
+                      onChange={(e) => setLectureStartTime(e.target.value)}
+                      className="w-full rounded-lg border p-2"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">
+                      Thời gian kết thúc
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={lectureEndTime}
+                      onChange={(e) => setLectureEndTime(e.target.value)}
+                      className="w-full rounded-lg border p-2"
+                      required
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium">
+                    Trạng thái
+                  </label>
+                  <select
+                    value={lectureStatus}
+                    onChange={(e) => setLectureStatus(parseInt(e.target.value))}
+                    className="w-full rounded-lg border p-2"
+                    required
+                  >
+                    <option value={1}>Đang hoạt động</option>
+                    <option value={0}>Đã kết thúc</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsEditLectureModalOpen(false)}
+                  className="rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-100"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-lg bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+                  disabled={loading}
+                >
+                  {loading ? 'Đang xử lý...' : 'Cập nhật buổi học'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Error Display */}
       {error && (
         <div className="mb-4 rounded-lg bg-red-100 p-4 text-red-800">
@@ -1493,53 +2142,189 @@ export const Classroom: React.FC = () => {
 
           {selectedCourse ? (
             filteredClasses.length > 0 ? (
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {filteredClasses.map((cls) => (
-                  <div key={cls.id} className="rounded-lg border p-4 shadow-sm">
-                    <div className="flex justify-between">
-                      <h3 className="font-bold">{cls.classCode}</h3>
-                      <span
-                        className={`inline-flex items-center rounded-full px-2 py-1 text-xs ${
-                          cls.status === 1
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-red-100 text-red-800'
-                        }`}
-                      >
-                        {cls.status === 1 ? 'Đang hoạt động' : 'Đã kết thúc'}
-                      </span>
-                    </div>
-                    <div className="mt-2 text-sm text-gray-600">
-                      <div className="flex items-center justify-between">
-                        <span>Loại lớp:</span>
-                        <span className="font-medium capitalize">
-                          {cls.type}
+              <div>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {filteredClasses.map((cls) => (
+                    <div
+                      key={cls.id}
+                      className={`cursor-pointer rounded-lg border p-4 shadow-sm ${
+                        selectedClass?.id === cls.id
+                          ? 'border-2 border-blue-500'
+                          : ''
+                      }`}
+                      onClick={() => handleClassSelect(cls)}
+                    >
+                      <div className="flex justify-between">
+                        <h3 className="font-bold">{cls.classCode}</h3>
+                        <span
+                          className={`inline-flex items-center rounded-full px-2 py-1 text-xs ${
+                            cls.status === 1
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}
+                        >
+                          {cls.status === 1 ? 'Đang hoạt động' : 'Đã kết thúc'}
                         </span>
                       </div>
-                      <div className="mt-1 flex items-center justify-between">
-                        <span>Số sinh viên:</span>
-                        <span className="font-medium">{cls.count}</span>
+                      <div className="mt-2 text-sm text-gray-600">
+                        <div className="flex items-center justify-between">
+                          <span>Loại lớp:</span>
+                          <span className="font-medium capitalize">
+                            {cls.type}
+                          </span>
+                        </div>
+                        <div className="mt-1 flex items-center justify-between">
+                          <span>Số sinh viên:</span>
+                          <span className="font-medium">{cls.count}</span>
+                        </div>
+                        <div className="mt-1 flex items-center justify-between">
+                          <span>Mã giảng viên:</span>
+                          <span className="font-medium">{cls.classUserId}</span>
+                        </div>
                       </div>
-                      <div className="mt-1 flex items-center justify-between">
-                        <span>Mã giảng viên:</span>
-                        <span className="font-medium">{cls.classUserId}</span>
+                      <div className="mt-4 flex justify-end gap-2">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditClass(cls);
+                          }}
+                          className="rounded-lg bg-blue-100 px-3 py-1 text-blue-600 hover:bg-blue-200"
+                        >
+                          Sửa
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteClass(cls.id);
+                          }}
+                          className="rounded-lg bg-red-100 px-3 py-1 text-red-600 hover:bg-red-200"
+                        >
+                          Xóa
+                        </button>
                       </div>
                     </div>
-                    <div className="mt-4 flex justify-end gap-2">
+                  ))}
+                </div>
+
+                {/* Lectures Section */}
+                {selectedClass && (
+                  <div className="mt-6">
+                    <div className="mb-4 flex items-center justify-between">
+                      <h3 className="text-lg font-semibold">
+                        Danh sách buổi học - {selectedClass.classCode}
+                      </h3>
                       <button
-                        onClick={() => handleEditClass(cls)}
-                        className="rounded-lg bg-blue-100 px-3 py-1 text-blue-600 hover:bg-blue-200"
+                        onClick={handleOpenAddLectureModal}
+                        className="rounded-lg bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"
                       >
-                        Sửa
-                      </button>
-                      <button
-                        onClick={() => handleDeleteClass(cls.id)}
-                        className="rounded-lg bg-red-100 px-3 py-1 text-red-600 hover:bg-red-200"
-                      >
-                        Xóa
+                        + Thêm buổi học
                       </button>
                     </div>
+
+                    {lecturesLoading ? (
+                      <p className="py-4 text-center">
+                        Đang tải danh sách buổi học...
+                      </p>
+                    ) : lectures.length > 0 ? (
+                      <div className="overflow-x-auto">
+                        <table className="w-full table-auto border-collapse">
+                          <thead>
+                            <tr className="bg-gray-100">
+                              <th className="border px-4 py-2 text-left">
+                                Tiêu đề
+                              </th>
+                              <th className="border px-4 py-2 text-left">
+                                Mô tả
+                              </th>
+                              <th className="border px-4 py-2 text-left">
+                                Tài liệu
+                              </th>
+                              <th className="border px-4 py-2 text-left">
+                                Bắt đầu
+                              </th>
+                              <th className="border px-4 py-2 text-left">
+                                Kết thúc
+                              </th>
+                              <th className="border px-4 py-2 text-left">
+                                Trạng thái
+                              </th>
+                              <th className="border px-4 py-2 text-center">
+                                Thao tác
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {lectures.map((lecture) => (
+                              <tr key={lecture.id} className="hover:bg-gray-50">
+                                <td className="border px-4 py-2">
+                                  {lecture.title}
+                                </td>
+                                <td className="border px-4 py-2">
+                                  {lecture.description}
+                                </td>
+                                <td className="border px-4 py-2">
+                                  {lecture.file ? (
+                                    <a
+                                      href={`http://localhost:8080/api/download/${lecture.file}`}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="text-blue-500 hover:underline"
+                                    >
+                                      Tải xuống
+                                    </a>
+                                  ) : (
+                                    'Không có tài liệu'
+                                  )}
+                                </td>
+                                <td className="border px-4 py-2">
+                                  {formatDateTime(lecture.startTime)}
+                                </td>
+                                <td className="border px-4 py-2">
+                                  {formatDateTime(lecture.endTime)}
+                                </td>
+                                <td className="border px-4 py-2">
+                                  <span
+                                    className={`inline-flex items-center rounded-full px-2 py-1 text-xs ${
+                                      lecture.status === 1
+                                        ? 'bg-green-100 text-green-800'
+                                        : 'bg-red-100 text-red-800'
+                                    }`}
+                                  >
+                                    {lecture.status === 1
+                                      ? 'Đang hoạt động'
+                                      : 'Đã kết thúc'}
+                                  </span>
+                                </td>
+                                <td className="border px-4 py-2">
+                                  <div className="flex justify-center gap-2">
+                                    <button
+                                      onClick={() => handleEditLecture(lecture)}
+                                      className="rounded-lg bg-blue-100 px-3 py-1 text-blue-600 hover:bg-blue-200"
+                                    >
+                                      Sửa
+                                    </button>
+                                    <button
+                                      onClick={() =>
+                                        handleDeleteLecture(lecture.id)
+                                      }
+                                      className="rounded-lg bg-red-100 px-3 py-1 text-red-600 hover:bg-red-200"
+                                    >
+                                      Xóa
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <p className="py-4 text-center text-gray-500">
+                        Không có buổi học nào cho lớp này
+                      </p>
+                    )}
                   </div>
-                ))}
+                )}
               </div>
             ) : (
               <p className="py-4 text-center text-gray-500">
