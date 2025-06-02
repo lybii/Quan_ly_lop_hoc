@@ -100,7 +100,7 @@ def add_face_recognition(ten, user_id, lecture_id, time_checkin=None):
     finally:
         conn.close()
 
-        
+"""        
 def get_user_ids_by_lecture_id(lecture_id):
     conn = get_connection()
     c = conn.cursor()
@@ -108,6 +108,28 @@ def get_user_ids_by_lecture_id(lecture_id):
     results = [row[0] for row in c.fetchall()]
     conn.close()
     return results
+"""
+
+def get_user_ids_by_lecture_id(lecture_id):
+    conn = get_connection()
+    c = conn.cursor()
+    
+    # Lấy class_id từ lecture
+    c.execute("SELECT class_id FROM lecture WHERE id = %s", (lecture_id,))
+    row = c.fetchone()
+    if not row:
+        conn.close()
+        return []  # Không tìm thấy lecture
+    
+    class_id = row[0]
+
+    # Lấy user_id từ class_user thông qua class_id
+    c.execute("SELECT user_id FROM class_user WHERE class_id = %s", (class_id,))
+    results = [r[0] for r in c.fetchall()]
+    
+    conn.close()
+    return results
+
 
 def get_checked_in_users_by_lecture_id(lecture_id):
     conn = get_connection()
