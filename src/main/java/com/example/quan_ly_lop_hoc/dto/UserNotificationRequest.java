@@ -1,27 +1,26 @@
 package com.example.quan_ly_lop_hoc.dto;
 
 import jakarta.validation.constraints.NotNull;
-import java.util.Date;
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonFormat;
+
+import java.util.Date;
 
 public class UserNotificationRequest {
 
     @NotNull(message = "Notification ID is required")
     private Integer notificationId;
 
-    @NotNull(message = "User IDs list is required")
-    private List<Integer> userIds;
+    @NotNull(message = "Class ID is required")
+    private Integer classId;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Ho_Chi_Minh")
     private Date time;  // Có thể null, nếu null thì dùng thời gian hiện tại
 
     public UserNotificationRequest() {}
 
-    public UserNotificationRequest(Integer notificationId, List<Integer> userIds, Date time) {
+    public UserNotificationRequest(Integer notificationId, Integer classId, Date time) {
         this.notificationId = notificationId;
-        this.userIds = userIds;
+        this.classId = classId;
         this.time = time;
     }
 
@@ -33,12 +32,12 @@ public class UserNotificationRequest {
         this.notificationId = notificationId;
     }
 
-    public List<Integer> getUserIds() {
-        return userIds;
+    public Integer getClassId() {
+        return classId;
     }
 
-    public void setUserIds(List<Integer> userIds) {
-        this.userIds = userIds;
+    public void setClassId(Integer classId) {
+        this.classId = classId;
     }
 
     public Date getTime() {

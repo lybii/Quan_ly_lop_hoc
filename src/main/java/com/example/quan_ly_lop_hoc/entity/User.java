@@ -10,6 +10,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity(name = "user")
 public class User implements UserDetails{
     @Id
@@ -52,18 +54,23 @@ public class User implements UserDetails{
     private Role role;
 
     @OneToMany(mappedBy = "user")
+    @JsonIgnore
     private List<ClassUser> classUsers;
 
     @OneToMany(mappedBy = "user")
+    @JsonIgnore
     private List<MarkAttendance> markAttendances;
 
     @OneToMany(mappedBy = "user")
+    @JsonIgnore
     private List<Submission> submissions;
 
     @OneToMany(mappedBy = "user")
+    @JsonIgnore
     private List<Comment> comments;
 
     @OneToMany(mappedBy = "user")
+    @JsonIgnore
     private List<Notifications> notifications;
 
      // Implement phương thức của UserDetails

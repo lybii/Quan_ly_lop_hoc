@@ -17,6 +17,16 @@ public interface UserNotificationRepository extends JpaRepository<UserNotificati
     @Query("SELECT un FROM user_notification un WHERE un.user.id = :userId ORDER BY un.time DESC")
     List<UserNotification> findAllByUserIdOrderByTimeDesc(@Param("userId") int userId);
 
-      @Query("SELECT un FROM user_notification un WHERE un.user.email = :email")
+ @Query("SELECT un FROM user_notification un WHERE un.user.email = :email")
     List<UserNotification> findByUserEmail(String email);
+
+    @Query(value = """
+    SELECT n.id, n.title, n.content, n.status, u.id as userId
+    FROM user_notification un
+    JOIN user u ON un.user_id = u.id
+    JOIN class_user cu ON cu.user_id = u.id
+    JOIN notification n ON n.id = un.notification_id
+    WHERE cu.class_id = :classId
+    """, nativeQuery = true)
+    List<Object[]> findNotificationsByClassId(@Param("classId") Integer classId);
 }
