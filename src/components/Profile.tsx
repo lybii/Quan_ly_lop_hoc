@@ -13,14 +13,12 @@ export const Profile: React.FC<ProfileProps> = ({ name, image, role }) => {
   // Determine profile and password change paths based on role
   const getProfilePath = () => {
     if (role.toLowerCase() === 'student') return '/student/profile';
-    if (role.toLowerCase() === 'lecturer') return '/lecturer/profile';
-    return '/profile'; // Default path
+    return '/lecturer/profile';
   };
 
   const getPasswordPath = () => {
     if (role.toLowerCase() === 'student') return '/student/change-password';
-    if (role.toLowerCase() === 'lecturer') return '/lecturer/change-password';
-    return '/change-password'; // Default path
+    return '/lecturer/change-password';
   };
 
   return (
@@ -79,15 +77,25 @@ export const Profile: React.FC<ProfileProps> = ({ name, image, role }) => {
               </li>
             </Link>
             <Link to={getPasswordPath()}>
-              <li className="mb-3 mt-3 flex h-[40px] w-full cursor-pointer items-center rounded-2xl hover:text-blue-600 hover:duration-300">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
-  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-</svg>
-
+              <li className="mb-1 mt-1 flex h-[40px] w-full cursor-pointer items-center rounded-2xl hover:text-blue-600 hover:duration-300">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="m-3 size-6"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z"
+                  />
+                </svg>
                 Đổi mật khẩu
               </li>
             </Link>
-            <li className="mb-3 mt-3 flex h-[40px] w-full cursor-pointer items-center rounded-2xl hover:text-blue-600 hover:duration-300">
+            <li className="mb-1 mt-1 flex h-[40px] w-full cursor-pointer items-center rounded-2xl hover:text-blue-600 hover:duration-300">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"

@@ -226,58 +226,47 @@ const CreateNotificationModal: React.FC<CreateNotificationModalProps> = ({
 
         notificationId = notificationResponse.data.id;
 
-        // 2. Send notification to all students in the class
-        const studentUserIds = students.map((student) => student.user.id);
-
-        if (studentUserIds.length > 0) {
-          await axios.post(
-            'http://localhost:8080/api/user-notifications/add',
-            {
-              notificationId,
-              userIds: studentUserIds,
-              time: time
-                ? new Date(time)
-                    .toISOString()
-                    .replace('T', ' ')
-                    .substring(0, 19)
-                : new Date().toISOString().replace('T', ' ').substring(0, 19),
-            },
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
-              },
-            }
-          );
-
-          // Format the date for UI display
-          const dateForDisplay = time
-            ? formatDateForDisplay(new Date(time))
-            : formatDateForDisplay(new Date());
-
-          // Create a notification object for UI display
-          const notificationForUI: NotificationProps = {
-            id: notificationId,
-            title,
-            message: content,
-            date: dateForDisplay,
-            content,
-            status: 1,
-            userId: parseInt(userId),
+        // 2. Send notification to all students in the class using the new API
+        await axios.post(
+          'http://localhost:8080/api/user-notifications/add',
+          {
+            notificationId,
+            classId: currentClass.id,
             time: time
-              ? new Date(time).toISOString()
-              : new Date().toISOString(),
-          };
+              ? new Date(time).toISOString().replace('T', ' ').substring(0, 19)
+              : new Date().toISOString().replace('T', ' ').substring(0, 19),
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
 
-          onCreate(notificationForUI);
-          setTitle('');
-          setContent('');
-          setTime('');
-          onClose();
-          alert('Đã gửi thông báo thành công!');
-        } else {
-          alert('Không có sinh viên nào trong lớp để gửi thông báo');
-        }
+        // Format the date for UI display
+        const dateForDisplay = time
+          ? formatDateForDisplay(new Date(time))
+          : formatDateForDisplay(new Date());
+
+        // Create a notification object for UI display
+        const notificationForUI: NotificationProps = {
+          id: notificationId,
+          title,
+          message: content,
+          date: dateForDisplay,
+          content,
+          status: 1,
+          userId: parseInt(userId),
+          time: time ? new Date(time).toISOString() : new Date().toISOString(),
+        };
+
+        onCreate(notificationForUI);
+        setTitle('');
+        setContent('');
+        setTime('');
+        onClose();
+        alert('Đã gửi thông báo thành công!');
       }
     } catch (error: any) {
       console.error('Error with notification:', error);
@@ -545,27 +534,28 @@ export const NotificationList: React.FC = () => {
         setError('Không tìm thấy ID lớp học');
       }
 
-      // Fetch notifications
-      const notificationsResponse = await axios.get(
-        'http://localhost:8080/api/notifications',
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      // Fetch notifications for this specific class
+      if (classId) {
+        const notificationsResponse = await axios.get(
+          `http://localhost:8080/api/notifications/class/${classId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
-      if (notificationsResponse.data.success) {
-        const notificationsData = notificationsResponse.data.data || [];
+        // API directly returns an array of notifications
+        const notificationsData = notificationsResponse.data || [];
         const formattedNotifications = notificationsData.map(
           (notification: any) => ({
             id: notification.id,
             title: notification.title,
             message: notification.content,
             content: notification.content,
-            date: formatDateFromAPI(
-              notification.time || new Date().toISOString()
-            ),
+            date: notification.time
+              ? formatDateFromAPI(notification.time)
+              : formatDateFromAPI(new Date().toISOString()),
             status: notification.status,
             userId: notification.userId,
             time: notification.time,

@@ -4,7 +4,6 @@ import { SearchBox } from '../components/Search_box';
 import { Profile } from '../components/Profile';
 import api from '../api/axiosConfig';
 
-
 interface UserData {
   id: number;
   userName: string;
@@ -30,12 +29,14 @@ export const EditProfile: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const nameInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // Cloudinary configuration - simple unsigned upload
-  const CLOUDINARY_URL = 'https://api.cloudinary.com/v1_1/ddehaxisw/image/upload';
+  const CLOUDINARY_URL =
+    'https://api.cloudinary.com/v1_1/ddehaxisw/image/upload';
   const CLOUDINARY_UPLOAD_PRESET = 'quanlylophoc';
   const CLOUDINARY_NAME = 'ddehaxisw'; // this should be an unsigned upload preset
 
@@ -48,7 +49,7 @@ export const EditProfile: React.FC = () => {
           setLoading(false);
           return;
         }
-        
+
         const response = await api.get(`/api/users/${userId}`);
         if (response.data.success) {
           setUserData(response.data.data);
@@ -77,7 +78,7 @@ export const EditProfile: React.FC = () => {
 
   const handleSaveClick = async () => {
     if (!userData) return;
-    
+
     try {
       setLoading(true);
       const response = await api.put(`/api/users/${userData.id}`, {
@@ -86,14 +87,17 @@ export const EditProfile: React.FC = () => {
         phoneNumber: userData.phoneNumber,
         dateOfBirth: userData.dateOfBirth,
       });
-      
+
       if (response.data.success) {
-        alert('Thông tin cá nhân đã được cập nhật thành công!');
+        setSuccessMessage('Thông tin cá nhân đã được cập nhật thành công!');
+        setTimeout(() => {
+          setSuccessMessage(null);
+        }, 3000);
         setUserData(response.data.data);
       } else {
         throw new Error('Không thể cập nhật thông tin cá nhân');
       }
-      
+
       setIsDisabled(true);
     } catch (error: any) {
       console.error('Error saving profile:', error);
@@ -132,37 +136,43 @@ export const EditProfile: React.FC = () => {
       formData.append('file', selectedFile);
       formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
       formData.append('cloud_name', CLOUDINARY_NAME);
-      
+
       // Upload to Cloudinary using unsigned upload
       const response = await fetch(CLOUDINARY_URL, {
         method: 'POST',
-        body: formData
+        body: formData,
       });
-      
+
       if (!response.ok) {
         throw new Error(`Upload failed with status: ${response.status}`);
       }
-      
+
       const data = await response.json();
       console.log(data);
-      
+
       if (data && data.secure_url) {
         const imageUrl = data.secure_url;
         console.log('Image uploaded successfully:', imageUrl);
-        
+
         // Update user avatar in backend
         console.log('Updating avatar in backend...');
-        const avatarResponse = await api.put(`/api/users/${userData.id}/avatar`, {
-          avatar: imageUrl
-        });
+        const avatarResponse = await api.put(
+          `/api/users/${userData.id}/avatar`,
+          {
+            avatar: imageUrl,
+          }
+        );
 
         if (avatarResponse.data.success) {
           // Update local state
           setUserData({
             ...userData,
-            avatar: imageUrl
+            avatar: imageUrl,
           });
-          alert('Avatar đã được cập nhật thành công!');
+          setSuccessMessage('Avatar đã được cập nhật thành công!');
+          setTimeout(() => {
+            setSuccessMessage(null);
+          }, 3000);
         } else {
           throw new Error('Không thể cập nhật avatar');
         }
@@ -171,7 +181,9 @@ export const EditProfile: React.FC = () => {
       }
     } catch (error: any) {
       console.error('Error uploading avatar:', error);
-      alert('Có lỗi khi cập nhật avatar: ' + (error.message || 'Unknown error'));
+      alert(
+        'Có lỗi khi cập nhật avatar: ' + (error.message || 'Unknown error')
+      );
     } finally {
       setUploading(false);
       setPreviewUrl(null);
@@ -203,6 +215,13 @@ export const EditProfile: React.FC = () => {
         </div>
       </div>
 
+      {/* Success message notification */}
+      {/* {successMessage && (
+        <div className="fixed right-4 top-4 z-50 flex h-[50px] w-auto min-w-[250px] items-center justify-center rounded-xl bg-green-600 px-4 py-2 text-white shadow-lg transition-opacity duration-300">
+          {successMessage}
+        </div>
+      )} */}
+
       <div className="-mt-8 grid h-auto w-auto rounded-2xl bg-white p-4 sm:grid-cols-1 md:grid-cols-1 lg:grid-cols-6">
         <div className="col-span-4 flex flex-col">
           <div className="flex justify-between">
@@ -223,7 +242,11 @@ export const EditProfile: React.FC = () => {
               id="fullname"
               ref={nameInputRef}
               value={userData?.userName || ''}
-              onChange={(e) => setUserData(userData ? {...userData, userName: e.target.value} : null)}
+              onChange={(e) =>
+                setUserData(
+                  userData ? { ...userData, userName: e.target.value } : null
+                )
+              }
             />
           </div>
           <div className="">
@@ -242,7 +265,11 @@ export const EditProfile: React.FC = () => {
               disabled={isDisabled}
               className="h-[50px] w-full rounded-xl border border-gray-600 px-3 text-xl"
               value={userData?.dateOfBirth || ''}
-              onChange={(e) => setUserData(userData ? {...userData, dateOfBirth: e.target.value} : null)}
+              onChange={(e) =>
+                setUserData(
+                  userData ? { ...userData, dateOfBirth: e.target.value } : null
+                )
+              }
             />
           </div>
           <div className="">
@@ -252,7 +279,11 @@ export const EditProfile: React.FC = () => {
               disabled={isDisabled}
               className="h-[50px] w-full rounded-xl border border-gray-600 px-3 text-xl"
               value={userData?.email || ''}
-              onChange={(e) => setUserData(userData ? {...userData, email: e.target.value} : null)}
+              onChange={(e) =>
+                setUserData(
+                  userData ? { ...userData, email: e.target.value } : null
+                )
+              }
             />
           </div>
           <div className="">
@@ -262,36 +293,46 @@ export const EditProfile: React.FC = () => {
               disabled={isDisabled}
               className="h-[50px] w-full rounded-xl border border-gray-600 px-3 text-xl"
               value={userData?.phoneNumber || ''}
-              onChange={(e) => setUserData(userData ? {...userData, phoneNumber: e.target.value} : null)}
+              onChange={(e) =>
+                setUserData(
+                  userData ? { ...userData, phoneNumber: e.target.value } : null
+                )
+              }
             />
           </div>
         </div>
         <div className="col-span-2 flex flex-col items-center justify-center">
           <div className="flex h-auto w-full flex-col items-center justify-center">
             {/* Hidden file input */}
-            <input 
-              type="file" 
-              ref={fileInputRef} 
+            <input
+              type="file"
+              ref={fileInputRef}
               onChange={handleFileChange}
-              accept="image/*" 
+              accept="image/*"
               className="hidden"
             />
-            
+
             {/* Avatar display */}
             <img
-              src={previewUrl || userData?.avatar || '../../src/assets/avatar.png'}
+              src={
+                previewUrl || userData?.avatar || '../../src/assets/avatar.png'
+              }
               alt="Profile"
-              className="h-[200px] w-[200px] rounded-full object-cover cursor-pointer"
+              className="h-[200px] w-[200px] cursor-pointer rounded-full object-cover"
               onClick={handleAvatarClick}
             />
-            
+
             {/* Upload button */}
-            <button 
+            <button
               className="mt-5 h-[50px] w-[200px] rounded-xl border border-gray-600 disabled:opacity-50"
               onClick={selectedFile ? uploadAvatar : handleAvatarClick}
               disabled={uploading}
             >
-              {uploading ? 'Đang tải lên...' : selectedFile ? 'Xác nhận hình ảnh' : 'Thay đổi ảnh đại diện'}
+              {uploading
+                ? 'Đang tải lên...'
+                : selectedFile
+                  ? 'Xác nhận hình ảnh'
+                  : 'Thay đổi ảnh đại diện'}
             </button>
           </div>
           <div className="flex h-full w-full items-end justify-around">
