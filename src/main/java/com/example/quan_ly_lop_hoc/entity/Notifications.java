@@ -3,6 +3,8 @@ package com.example.quan_ly_lop_hoc.entity;
 import jakarta.persistence.*;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 @Entity(name = "notification")
 public class Notifications {
     @Id
@@ -25,6 +27,7 @@ public class Notifications {
 
     // Quan hệ N-N: Một Notification có thể được gửi đến nhiều User
     @OneToMany(mappedBy = "notification")
+    @JsonIgnore
     private List<UserNotification> userNotifications;
 
     public int getId() {
@@ -69,4 +72,5 @@ public class Notifications {
     public void setUserNotifications(List<UserNotification> userNotifications) {
         this.userNotifications = userNotifications;
     }
+
 }

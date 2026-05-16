@@ -67,7 +67,7 @@ public class CourseController {
 
     // Lấy lớp học mà giảng viên giảng dạy trong một khóa học (teacher)
     @GetMapping("/{courseId}/classes/teacher/{userId}")
-    @PreAuthorize("hasRole('ROLE_LECTURER')")
+    //@PreAuthorize("hasRole('ROLE_LECTURER')")
     public ResponseEntity<ResponseData> getAllClassesOfTeacher(@PathVariable int courseId, @PathVariable int userId) {
         List<ClassDTO> classes = courseService.getAllClassesOfTeacher(courseId, userId);
         ResponseData responseData = new ResponseData(200, true, "Lấy danh sách lớp học của giảng viên thành công", classes);
@@ -97,15 +97,6 @@ public class CourseController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<ResponseData> searchCourseByNameOrCode(@RequestParam String keyword) {
         List<CourseDTO> courses = courseService.searchCourseByNameOrCode(keyword);
-        ResponseData responseData = new ResponseData(200, true, "Tìm kiếm khóa học thành công", courses);
-        return new ResponseEntity<>(responseData, HttpStatus.OK);
-    }
-
-    // Tìm kiếm khóa học theo tên hoặc mã mà giảng viên/sinh viên tham gia (student, lecturer)
-    @GetMapping("/search/user")
-    @PreAuthorize("hasAnyRole('ROLE_LECTURER', 'ROLE_STUDENT')")
-    public ResponseEntity<ResponseData> searchCourseOfStudentOrLecturer(@RequestParam String keyword, @RequestParam int userId) {
-        List<CourseDTO> courses = courseService.searchCourseOfStudentOrLecturer(keyword, userId);
         ResponseData responseData = new ResponseData(200, true, "Tìm kiếm khóa học thành công", courses);
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }

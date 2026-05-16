@@ -48,15 +48,6 @@ public class ClassController {
         return new ResponseEntity<>(responseData, HttpStatus.OK);
     }
 
-    // Tìm kiếm lớp học theo tên hoặc mã mà giảng viên/sinh viên tham gia (student, lecturer)
-    @GetMapping("/search/user")
-    @PreAuthorize("hasAnyRole('ROLE_LECTURER', 'ROLE_STUDENT')")
-    public ResponseEntity<ResponseData> searchClassOfStudentOrLecturer(@RequestParam String keyword, @RequestParam int userId) {
-        List<ClassDTO> classes = classService.searchClassOfStudentOrLecturer(keyword, userId);
-        ResponseData responseData = new ResponseData(200, true, "Tìm kiếm lớp học thành công", classes);
-        return new ResponseEntity<>(responseData, HttpStatus.OK);
-    }
-
     // Lấy thông tin chi tiết của lớp học (user)
     @GetMapping("/{classId}")
     @PreAuthorize("hasAnyRole('ROLE_LECTURER', 'ROLE_STUDENT', 'ROLE_ADMIN')")
