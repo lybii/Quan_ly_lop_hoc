@@ -8,8 +8,6 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.example.quan_ly_lop_hoc.dto.NotificationResponse;
-import com.example.quan_ly_lop_hoc.dto.UserNotificationRequest;
 import com.example.quan_ly_lop_hoc.entity.ClassUser;
 import com.example.quan_ly_lop_hoc.entity.Notifications;
 import com.example.quan_ly_lop_hoc.entity.User;
@@ -18,6 +16,9 @@ import com.example.quan_ly_lop_hoc.repository.ClassUserRepository;
 import com.example.quan_ly_lop_hoc.repository.NotificationRepository;
 import com.example.quan_ly_lop_hoc.repository.UserNotificationRepository;
 import com.example.quan_ly_lop_hoc.repository.UserRepository;
+import com.example.quan_ly_lop_hoc.dto.NotificationResponse;
+import com.example.quan_ly_lop_hoc.dto.UserNotificationRequest;
+import com.example.quan_ly_lop_hoc.dto.UserNotificationResponse;
 
 @Service
 public class UserNotificationService {

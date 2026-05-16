@@ -18,8 +18,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.quan_ly_lop_hoc.dto.NotificationRequest;
 import com.example.quan_ly_lop_hoc.dto.NotificationResponse;
+import com.example.quan_ly_lop_hoc.entity.Notifications;
 import com.example.quan_ly_lop_hoc.entity.User;
 import com.example.quan_ly_lop_hoc.service.NotificationService;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/notifications")
@@ -121,6 +123,19 @@ public ResponseEntity<?> updateNotification(
         return ResponseEntity.ok(notificationResponse);
     }
 
+    //Lấy danh sách
+    /*@PreAuthorize("hasRole('LECTURER') or hasRole('ADMIN')")
+    @GetMapping("/class/{classId}")
+    public ResponseEntity<List<Notifications>> getNotificationsByClassId(@PathVariable int classId) {
+        List<Notifications> notifications = notificationService.getNotificationsByClassId(classId);
+        return ResponseEntity.ok(notifications);
+    }*/
+
+    @GetMapping("/class/{classId}")
+    public ResponseEntity<List<NotificationResponse>> getNotificationsByClassId(@PathVariable int classId) {
+        List<NotificationResponse> notifications = notificationService.getNotificationsByClassId(classId);
+        return ResponseEntity.ok(notifications);
+    }
 
     // Triển khai lấy user hiện tại từ session hoặc token
     private User getCurrentLoggedInUser() {

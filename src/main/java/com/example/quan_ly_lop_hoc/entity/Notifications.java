@@ -72,4 +72,5 @@ public class Notifications {
     public void setUserNotifications(List<UserNotification> userNotifications) {
         this.userNotifications = userNotifications;
     }
+
 }
