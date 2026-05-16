@@ -1,5 +1,6 @@
 package com.example.quan_ly_lop_hoc.repository;
 
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,7 +12,6 @@ import com.example.quan_ly_lop_hoc.entity.Class;
 import com.example.quan_ly_lop_hoc.entity.ClassUser;
 import com.example.quan_ly_lop_hoc.entity.Lecture;
 
-import java.util.Date;
 import java.util.Optional;
 
 @Repository
@@ -25,4 +25,10 @@ public interface LectureRepository extends JpaRepository<Lecture, Integer> {
 
     @Query("SELECT l FROM lecture l WHERE l.class1.id = :classId AND l.endTime <= :endTime")
     List<Lecture> findByClassIdAndEndTimeBeforeOrEqual(@Param("classId") Integer classId, @Param("endTime") Date endTime);
+
+
+
+
+    @Query("SELECT l FROM lecture l JOIN l.class1 c JOIN c.classUsers cu WHERE cu.user.email = :email AND l.startTime >= :today AND l.startTime < :tomorrow")
+    List<Lecture> findByClassUserEmailAndStartTimeToday(@Param("email") String email, @Param("today") Date today, @Param("tomorrow") Date tomorrow);
 }

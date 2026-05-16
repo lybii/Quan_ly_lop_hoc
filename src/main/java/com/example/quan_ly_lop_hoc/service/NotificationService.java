@@ -3,6 +3,7 @@ package com.example.quan_ly_lop_hoc.service;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -109,6 +110,33 @@ public class NotificationService {
 
     notificationRepository.delete(notification);
     }
+
+    //Lấy danh sách
+    public List<NotificationResponse> getNotificationsByClassId(int classId) {
+    List<Object[]> results = userNotificationRepository.findNotificationsByClassId(classId);
+
+    // Dùng LinkedHashMap để loại bỏ trùng, giữ thứ tự theo notification id
+    Map<Integer, NotificationResponse> distinctMap = new LinkedHashMap<>();
+
+    for (Object[] row : results) {
+        int notificationId = ((Number) row[0]).intValue();
+
+        // Nếu chưa có thông báo này trong map thì thêm vào
+        if (!distinctMap.containsKey(notificationId)) {
+            NotificationResponse response = new NotificationResponse(
+                notificationId,
+                (String) row[1],                   // title
+                (String) row[2],                   // content
+                ((Number) row[3]).intValue(),     // status
+                ((Number) row[4]).intValue()      // userId
+            );
+            distinctMap.put(notificationId, response);
+        }
+        // Nếu đã có rồi thì bỏ qua (loại trùng)
+    }
+
+    return new ArrayList<>(distinctMap.values());
+}
 
     //Lấy chi tiết
     public NotificationResponse getNotificationById(int id) {
