@@ -107,6 +107,13 @@ public class CourseService {
                 .collect(Collectors.toList());
     }
 
+    // Tìm kiếm khóa học theo tên hoặc mã mà giảng viên/sinh viên tham gia
+    public List<CourseDTO> searchCourseOfStudentOrLecturer(String keyword, int userId) {
+        return courseRepository.searchCoursesByUserIdAndKeyword(userId, keyword).stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
     // Ánh xạ Course entity sang CourseDTO
     private CourseDTO mapToDTO(Course course) {
         return new CourseDTO(

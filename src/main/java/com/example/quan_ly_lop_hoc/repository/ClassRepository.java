@@ -29,4 +29,7 @@ public interface ClassRepository extends JpaRepository<Class, Integer> {
 
     @Query("SELECT c FROM class c JOIN c.classUsers cu LEFT JOIN FETCH c.classUsers WHERE c.course.id = :courseId AND cu.user.id = :userId AND cu.user.role.name = 'LECTURER'")
     List<Class> findClassesByCourse_IdAndTeacher_IdWithClassUsers(@Param("courseId") Integer courseId, @Param("userId") Integer userId);
+
+    @Query("SELECT c FROM class c JOIN c.classUsers cu WHERE cu.user.id = :userId AND (LOWER(c.classCode) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(c.type) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND c.status != 0")
+    List<Class> searchClassesByUserIdAndKeyword(@Param("userId") Integer userId, @Param("keyword") String keyword);
 }

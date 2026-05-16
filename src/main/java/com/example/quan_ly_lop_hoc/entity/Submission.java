@@ -18,7 +18,7 @@ public class Submission {
     private int status;
 
     @Column(name = "grade")
-    private Float grade;
+    private float grade;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
@@ -56,10 +56,10 @@ public class Submission {
         this.status = status;
     }
 
-    public Float getGrade() {
+    public float getGrade() {
         return grade;
     }
-    public void setGrade(Float grade) {
+    public void setGrade(float grade) {
         this.grade = grade;
     }
 

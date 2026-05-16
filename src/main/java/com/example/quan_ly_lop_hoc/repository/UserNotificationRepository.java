@@ -40,5 +40,6 @@ List<Notifications> findNotificationsByClassId(@Param("classId") Integer classId
 """, nativeQuery = true)
 List<Object[]> findNotificationsByClassId(@Param("classId") Integer classId);
 
-
+@Query("SELECT un FROM user_notification un WHERE un.user.email = :email")
+    List<UserNotification> findByUserEmail(String email);
 }

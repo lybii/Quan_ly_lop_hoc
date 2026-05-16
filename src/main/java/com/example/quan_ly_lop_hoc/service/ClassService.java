@@ -256,6 +256,14 @@ public class ClassService {
                 .collect(Collectors.toList());
     }
 
+    public List<ClassDTO> searchClassOfStudentOrLecturer(String keyword, int userId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("Người dùng không tồn tại"));
+        return classRepository.searchClassesByUserIdAndKeyword(userId, keyword).stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
     private ClassDTO mapToDTO(Class classEntity) {
         int classUserId = 0;
         Optional<ClassUser> teacherClassUser = classUserRepository.findByClassId(classEntity.getId()).stream()
